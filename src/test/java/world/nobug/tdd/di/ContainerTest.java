@@ -8,6 +8,17 @@ public class ContainerTest {
     @Nested
     public class ComponentConstruction{
 
+        // TODO: instance
+        // TODO: abstract class
+        // TODO: interface
+
+        @Nested
+        public class ConstructorInjection{
+            // TODO: No args constructor
+            // TODO: with dependencies
+            // TODO: A -> B -> C
+        }
+
     }
 
     // 依赖选择相关的测试类
