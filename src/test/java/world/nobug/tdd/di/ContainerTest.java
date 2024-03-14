@@ -2,17 +2,20 @@ package world.nobug.tdd.di;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import world.nobug.tee.di.Context;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ContainerTest {
 
-    // 组件构造相关的测试类
     @Nested
     public class ComponentConstruction{
 
         interface Component{
+        }
+
+        static class ComponentWithDefaultConstructor implements Component{
+            public ComponentWithDefaultConstructor() {
+            }
         }
 
         // instance
@@ -32,6 +35,17 @@ public class ContainerTest {
         @Nested
         public class ConstructorInjection{
             // TODO: No args constructor
+            @Test
+            public void should_bind_type_to_a_class_with_default_constructor(){
+                Context context = new Context();
+
+                context.bind(Component.class, ComponentWithDefaultConstructor.class);
+
+                Component instance = context.get(Component.class);
+
+                assertNotNull(instance);
+                assertTrue(instance instanceof ComponentWithDefaultConstructor);
+            }
             // TODO: with dependencies
             // TODO: A -> B -> C
         }
