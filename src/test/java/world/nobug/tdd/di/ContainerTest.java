@@ -15,18 +15,16 @@ public class ContainerTest {
         interface Component{
         }
 
-        // TODO: instance
+        // instance
         @Test
         public void should_bind_type_to_a_specific_instance(){
             Context context = new Context();
 
             Component instance = new Component() {
-
             };
             context.bind(Component.class, instance);
 
             assertSame(instance, context.get(Component.class));
-
         }
         // TODO: abstract class
         // TODO: interface
