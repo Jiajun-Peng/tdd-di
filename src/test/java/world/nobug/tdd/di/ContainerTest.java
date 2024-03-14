@@ -34,7 +34,7 @@ public class ContainerTest {
 
         @Nested
         public class ConstructorInjection{
-            // TODO: No args constructor
+            // No args constructor
             @Test
             public void should_bind_type_to_a_class_with_default_constructor(){
                 Context context = new Context();
@@ -44,7 +44,7 @@ public class ContainerTest {
                 Component instance = context.get(Component.class);
 
                 assertNotNull(instance);
-                assertTrue(instance instanceof ComponentWithDefaultConstructor);
+                assertInstanceOf(ComponentWithDefaultConstructor.class, instance);
             }
             // TODO: with dependencies
             // TODO: A -> B -> C
