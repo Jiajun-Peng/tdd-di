@@ -43,7 +43,7 @@ public class ContainerTest {
                 assertNotNull(instance);
                 assertInstanceOf(ComponentWithDefaultConstructor.class, instance);
             }
-            // TODO: with dependencies
+            // with dependencies
             @Test
             public void should_bind_type_to_a_class_with_inject_constructor(){
                 Dependency dependency = new Dependency() {
