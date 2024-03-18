@@ -9,12 +9,12 @@ public class Context {
 
     private Map<Class<?>, Provider<?>> providers = new HashMap<>();
 
-    public <ComponentType> void bind(Class<ComponentType> type, ComponentType instance) {
+    public <Type> void bind(Class<Type> type, Type instance) {
         providers.put(type, () -> instance);
     }
 
-    public <ComponentType, ComponentImplementation extends ComponentType>
-    void bind(Class<ComponentType> type, Class<ComponentImplementation> implementation) {
+    public <Type, Implementation extends Type>
+    void bind(Class<Type> type, Class<Implementation> implementation) {
         providers.put(type, () -> {
             try {
                 return implementation.getConstructor().newInstance();
@@ -24,7 +24,7 @@ public class Context {
         });
     }
 
-    public <ComponentType> ComponentType get(Class<ComponentType> type) {
-        return (ComponentType) providers.get(type).get();
+    public <Type> Type get(Class<Type> type) {
+        return (Type) providers.get(type).get();
     }
 }
