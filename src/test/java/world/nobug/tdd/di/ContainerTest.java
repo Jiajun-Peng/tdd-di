@@ -74,7 +74,7 @@ public class ContainerTest {
             }
 
             // sad path
-            // TODO：multi inject constructors
+            // multi inject constructors
             @Test
             public void should_throw_exception_if_multi_inject_constructors_provided(){
                 assertThrows(IllegalComponentException.class, () -> {
