@@ -72,6 +72,13 @@ public class ContainerTest {
 
                 assertEquals("Hello, World!", ((DependencyWithInjectConstructor) dependency).getDependency());
             }
+
+            // sad path
+            // TODO：multi inject constructors
+
+            // TODO: no default constructor and inject constructor
+
+            // TODO: dependencies not exist
         }
 
     }
