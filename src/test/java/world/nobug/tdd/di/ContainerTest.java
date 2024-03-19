@@ -31,6 +31,12 @@ public class ContainerTest {
         // TODO: abstract class
         // TODO: interface
 
+        // TODO: component does not exist
+        @Test
+        public void should_throw_exception_if_component_does_not_exist(){
+            assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class));
+        }
+
         @Nested
         public class ConstructorInjection{
             // No args constructor
