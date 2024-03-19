@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,8 @@ public class Context {
                         .map(p -> get(p.getType()))
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
-            } catch (Exception e) {
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                // 如果时catch Exception的话，就无法抛出DependencyNotFoundException
                 throw new RuntimeException(e);
             }
         });
@@ -52,6 +54,7 @@ public class Context {
     }
 
     public <Type> Type get(Class<Type> type) {
+        if (!providers.containsKey(type)) throw new DependencyNotFoundException();
         return (Type) providers.get(type).get();
     }
 }
