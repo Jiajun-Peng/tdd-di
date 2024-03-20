@@ -25,17 +25,24 @@ public class Context {
     void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
-        providers.put(type, () -> {
-            try {
-                Object[] dependencies = stream(injectConstructor.getParameters())
-                        .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
-                        .toArray(Object[]::new);
-                return injectConstructor.newInstance(dependencies);
-            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
-                // 如果时catch Exception的话，就无法抛出DependencyNotFoundException
-                throw new RuntimeException(e);
-            }
-        });
+        providers.put(type, getTypeProvider(injectConstructor));
+    }
+
+    private <Type> Provider<Type> getTypeProvider(Constructor<Type> injectConstructor) {
+        // 预期在这了返回一个包含标志位和injectConstructor的Provider的类实例
+        return () -> getImplementation(injectConstructor); // new XXX(injectConstructor);
+    }
+
+    private <Type> Type getImplementation(Constructor<Type> injectConstructor) {
+        try {
+            Object[] dependencies = stream(injectConstructor.getParameters())
+                    .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
+                    .toArray(Object[]::new);
+            return injectConstructor.newInstance(dependencies);
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            // 如果时catch Exception的话，就无法抛出DependencyNotFoundException
+            throw new RuntimeException(e);
+        }
     }
 
     private static <Type> Constructor<Type> getInjectConstructor(Class<Type> implementation) {
