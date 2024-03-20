@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 
@@ -29,7 +28,7 @@ public class Context {
         providers.put(type, () -> {
             try {
                 Object[] dependencies = stream(injectConstructor.getParameters())
-                        .map(p -> get(p.getType()))
+                        .map(p -> get_(p.getType()).orElseThrow(DependencyNotFoundException::new))
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
@@ -52,10 +51,6 @@ public class Context {
                 throw new IllegalComponentException();
             }
         });
-    }
-
-    public <Type> Type get(Class<Type> type) {
-        return get_(type).orElseThrow(DependencyNotFoundException::new);
     }
 
     public <Type> Optional<Type> get_(Class<Type> type) {
