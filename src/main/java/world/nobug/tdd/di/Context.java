@@ -30,6 +30,7 @@ public class Context {
 
     class ConstructorInjectionProvider<T> implements Provider<T> {
         private Constructor<T> injectConstructor;
+        private boolean constructing = false;
 
         public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
             this.injectConstructor = injectConstructor;
@@ -37,7 +38,9 @@ public class Context {
 
         @Override
         public T get() {
+            if (constructing) throw new CyclicDependenciesException();
             try {
+                constructing = true;
                 Object[] dependencies = stream(injectConstructor.getParameters())
                         .map(p -> Context.this.get(p.getType()).orElseThrow(DependencyNotFoundException::new))
                         .toArray(Object[]::new);
@@ -45,6 +48,8 @@ public class Context {
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 // 如果时catch Exception的话，就无法抛出DependencyNotFoundException
                 throw new RuntimeException(e);
+            } finally {
+                constructing = false; // 不需要重置为false也可以通过测试，但是为了保险起见，还是重置为false
             }
         }
     }
