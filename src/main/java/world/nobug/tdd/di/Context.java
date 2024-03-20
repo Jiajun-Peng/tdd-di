@@ -25,12 +25,7 @@ public class Context {
     void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
-        providers.put(type, getTypeProvider(injectConstructor));
-    }
-
-    private <Type> Provider<Type> getTypeProvider(Constructor<Type> injectConstructor) {
-        // 返回一个包含标志位和injectConstructor的Provider的类实例
-        return new ConstructorInjectionProvider<>(injectConstructor);
+        providers.put(type, new ConstructorInjectionProvider<>(injectConstructor));
     }
 
     class ConstructorInjectionProvider<T> implements Provider<T> {
