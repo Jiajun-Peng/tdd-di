@@ -29,8 +29,8 @@ public class Context {
     }
 
     private <Type> Provider<Type> getTypeProvider(Constructor<Type> injectConstructor) {
-        // 预期在这了返回一个包含标志位和injectConstructor的Provider的类实例
-        return () -> getImplementation(injectConstructor); // new XXX(injectConstructor);
+        // 返回一个包含标志位和injectConstructor的Provider的类实例
+        return new ConstructorInjectionProvider<>(injectConstructor);
     }
 
     private <Type> Type getImplementation(Constructor<Type> injectConstructor) {
@@ -42,6 +42,19 @@ public class Context {
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
             // 如果时catch Exception的话，就无法抛出DependencyNotFoundException
             throw new RuntimeException(e);
+        }
+    }
+
+    class ConstructorInjectionProvider<T> implements Provider<T> {
+        private Constructor<T> injectConstructor;
+
+        public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
+            this.injectConstructor = injectConstructor;
+        }
+
+        @Override
+        public T get() {
+            return getImplementation(injectConstructor);
         }
     }
 
