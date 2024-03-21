@@ -44,7 +44,7 @@ public class Context {
 
         @Override
         public T get() {
-            if (constructing) throw new CyclicDependenciesException();
+            if (constructing) throw new CyclicDependenciesException(componentType);
             try {
                 constructing = true;
                 Object[] dependencies = stream(injectConstructor.getParameters())
@@ -52,6 +52,8 @@ public class Context {
                                 .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType())))
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
+            } catch (CyclicDependenciesException e) {
+                throw new CyclicDependenciesException(componentType, e);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 // 如果时catch Exception的话，就无法抛出DependencyNotFoundException
                 throw new RuntimeException(e);

@@ -4,8 +4,10 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.util.collections.Sets;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -130,8 +132,13 @@ public class ContainerTest {
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
                 context.bind(Dependency.class, DependencyDependedOnComponent.class);
 
-                assertThrows(CyclicDependenciesException.class, () -> context.get(Component.class));
+                CyclicDependenciesException exception = assertThrows(CyclicDependenciesException.class, () -> context.get(Component.class));
 
+                Set<Class<?>> classes = Sets.newSet(exception.getComponents());
+
+                assertEquals(2, classes.size());
+                assertTrue(classes.contains(Component.class));
+                assertTrue(classes.contains(Dependency.class));
             }
 
             // transitive cyclic dependencies：A -> B -> C -> A
@@ -141,7 +148,13 @@ public class ContainerTest {
                 context.bind(Dependency.class, DependencyDependedOnAnotherDependency.class); // Dependency依赖于AnotherDependency
                 context.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class); // AnotherDependency依赖于Component
 
-                assertThrows(CyclicDependenciesException.class, () -> context.get(Component.class));
+                CyclicDependenciesException exception = assertThrows(CyclicDependenciesException.class, () -> context.get(Component.class));
+
+                Set<Class<?>> classes = Sets.newSet(exception.getComponents());
+                assertEquals(3, classes.size());
+                assertTrue(classes.contains(Component.class));
+                assertTrue(classes.contains(Dependency.class));
+                assertTrue(classes.contains(AnotherDependency.class));
             }
 
         }
