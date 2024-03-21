@@ -105,7 +105,10 @@ public class ContainerTest {
             public void should_throw_exception_if_dependencies_not_found(){
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
 
-                assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class).get());
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class).get());
+
+                // 当组件未找到时，希望能确定是哪个组件未找到，所以需要在异常中记录未找到的组件信息
+                assertEquals(Dependency.class, exception.getDependency());
             }
 
             // cyclic dependencies
