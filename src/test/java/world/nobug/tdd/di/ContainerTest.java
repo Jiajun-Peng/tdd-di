@@ -111,6 +111,19 @@ public class ContainerTest {
                 assertEquals(Dependency.class, exception.getDependency());
             }
 
+            @Test
+            public void should_throw_exception_if_transitive_dependencies_not_found(){
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                context.bind(Dependency.class, DependencyWithInjectConstructor.class);
+
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class));
+
+                // 如果是更深层的组件的依赖未找到，那么仅仅反馈一个String类型的依赖未找到是不够的
+                assertEquals(String.class, exception.getDependency());
+                // 是DependencyWithInjectConstructor中的String类型的依赖未找到，所以此时的DependencyWithInjectConstructor是组件，且组件的类型是Dependency
+                assertEquals(Dependency.class, exception.getComponent());
+            }
+
             // cyclic dependencies
             @Test
             public void should_throw_exception_if_cyclic_dependencies_found(){
