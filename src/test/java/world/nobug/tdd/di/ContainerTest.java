@@ -30,7 +30,7 @@ public class ContainerTest {
             };
             config.bind(Component.class, instance);
 
-            assertSame(instance, config.get(Component.class).get());
+            assertSame(instance, config.getContext().get(Component.class).get());
         }
         // TODO: abstract class
         // TODO: interface
@@ -39,7 +39,7 @@ public class ContainerTest {
         @Test
         public void should_return_empty_if_component_not_defined(){
 //            assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class));
-            Optional<Component> component = config.get(Component.class);
+            Optional<Component> component = config.getContext().get(Component.class);
             assertTrue(component.isEmpty());
         }
 
@@ -50,7 +50,7 @@ public class ContainerTest {
             public void should_bind_type_to_a_class_with_default_constructor(){
                 config.bind(Component.class, ComponentWithDefaultConstructor.class);
 
-                Component instance = config.get(Component.class).get();
+                Component instance = config.getContext().get(Component.class).get();
 
                 assertNotNull(instance);
                 assertInstanceOf(ComponentWithDefaultConstructor.class, instance);
@@ -63,7 +63,7 @@ public class ContainerTest {
                 config.bind(Component.class, ComponentWithInjectConstructor.class);
                 config.bind(Dependency.class, dependency);
 
-                Component instance = config.get(Component.class).get();
+                Component instance = config.getContext().get(Component.class).get();
                 assertNotNull(instance);
                 assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
             }
@@ -76,7 +76,7 @@ public class ContainerTest {
                 config.bind(Dependency.class, DependencyWithInjectConstructor.class);
                 config.bind(String.class, "Hello, World!");
 
-                Component instance = config.get(Component.class).get();
+                Component instance = config.getContext().get(Component.class).get();
                 assertNotNull(instance);
 
                 Dependency dependency = ((ComponentWithInjectConstructor) instance).getDependency();
@@ -107,7 +107,7 @@ public class ContainerTest {
             public void should_throw_exception_if_dependencies_not_found(){
                 config.bind(Component.class, ComponentWithInjectConstructor.class);
 
-                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> config.get(Component.class).get());
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> config.getContext().get(Component.class).get());
 
                 // 当组件未找到时，希望能确定是哪个组件未找到，所以需要在异常中记录未找到的组件信息
                 assertEquals(Dependency.class, exception.getDependency());
@@ -118,7 +118,7 @@ public class ContainerTest {
                 config.bind(Component.class, ComponentWithInjectConstructor.class);
                 config.bind(Dependency.class, DependencyWithInjectConstructor.class);
 
-                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> config.get(Component.class));
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> config.getContext().get(Component.class));
 
                 // 如果是更深层的组件的依赖未找到，那么仅仅反馈一个String类型的依赖未找到是不够的
                 assertEquals(String.class, exception.getDependency());
@@ -132,7 +132,7 @@ public class ContainerTest {
                 config.bind(Component.class, ComponentWithInjectConstructor.class);
                 config.bind(Dependency.class, DependencyDependedOnComponent.class);
 
-                CyclicDependenciesException exception = assertThrows(CyclicDependenciesException.class, () -> config.get(Component.class));
+                CyclicDependenciesException exception = assertThrows(CyclicDependenciesException.class, () -> config.getContext().get(Component.class));
 
                 Set<Class<?>> classes = Sets.newSet(exception.getComponents());
 
@@ -148,7 +148,7 @@ public class ContainerTest {
                 config.bind(Dependency.class, DependencyDependedOnAnotherDependency.class); // Dependency依赖于AnotherDependency
                 config.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class); // AnotherDependency依赖于Component
 
-                CyclicDependenciesException exception = assertThrows(CyclicDependenciesException.class, () -> config.get(Component.class));
+                CyclicDependenciesException exception = assertThrows(CyclicDependenciesException.class, () -> config.getContext().get(Component.class));
 
                 Set<Class<?>> classes = Sets.newSet(exception.getComponents());
                 assertEquals(3, classes.size());

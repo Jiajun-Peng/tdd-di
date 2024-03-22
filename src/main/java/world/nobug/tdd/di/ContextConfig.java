@@ -37,10 +37,6 @@ public class ContextConfig {
         };
     }
 
-    public <Type> Optional<Type> get(Class<Type> type) {
-        return getContext().get(type);
-    }
-
     class ConstructorInjectionProvider<T> implements Provider<T> {
         private Class<?> componentType;
         private Constructor<T> injectConstructor;
@@ -57,8 +53,11 @@ public class ContextConfig {
             try {
                 constructing = true;
                 Object[] dependencies = stream(injectConstructor.getParameters())
-                        .map(p -> ContextConfig.this.get(p.getType())
-                                .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType())))
+                        .map(p -> {
+                            Class<?> type = p.getType();
+                            return getContext().get(type)
+                                    .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType()));
+                        })
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
             } catch (CyclicDependenciesException e) {
