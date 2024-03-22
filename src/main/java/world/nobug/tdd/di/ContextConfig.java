@@ -28,6 +28,7 @@ public class ContextConfig implements Context {
         providers.put(type, new ConstructorInjectionProvider<>(type, injectConstructor));
     }
 
+    @Override
     public <Type> Optional<Type> get(Class<Type> type) {
         return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get());
     }
