@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
 
-public class ContextConfig {
+public class ContextConfig implements Context {
 
     private Map<Class<?>, Provider<?>> providers = new HashMap<>();
 
