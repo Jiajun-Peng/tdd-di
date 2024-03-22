@@ -32,17 +32,13 @@ public class ContextConfig implements Context {
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
-                return getType(type);
+                return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get());
             }
         };
     }
 
     @Override
     public <Type> Optional<Type> get(Class<Type> type) {
-        return getType(type);
-    }
-
-    private <Type> Optional<Type> getType(Class<Type> type) {
         return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get());
     }
 
