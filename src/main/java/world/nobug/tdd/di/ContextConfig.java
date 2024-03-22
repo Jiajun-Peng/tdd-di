@@ -33,6 +33,8 @@ public class ContextConfig {
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
+                // Context仅仅是将实现delegate给了ContextConfig中的providers
+                // 所以貌似每一次调用get方法都还是会重新创建一个新的Context对象
                 return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get());
             }
         };
@@ -56,7 +58,7 @@ public class ContextConfig {
                 Object[] dependencies = stream(injectConstructor.getParameters())
                         .map(p -> {
                             Class<?> type = p.getType();
-                            return getContext().get(type)
+                            return getContext().get(type) // 每次创建Context，貌似也没啥问题，因为providers是单例的。
                                     .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType()));
                         })
                         .toArray(Object[]::new);
