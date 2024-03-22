@@ -39,7 +39,7 @@ public class ContextConfig implements Context {
 
     @Override
     public <Type> Optional<Type> get(Class<Type> type) {
-        return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get());
+        return getContext().get(type);
     }
 
     class ConstructorInjectionProvider<T> implements Provider<T> {
