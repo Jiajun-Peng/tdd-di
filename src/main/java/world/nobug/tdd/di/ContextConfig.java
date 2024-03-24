@@ -16,9 +16,11 @@ import static java.util.Arrays.stream;
 public class ContextConfig {
 
     private Map<Class<?>, Provider<?>> providers = new HashMap<>();
+    private Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
         providers.put(type, () -> instance);
+        componentProviders.put(type, context -> instance);
     }
 
     public <Type, Implementation extends Type>
@@ -26,6 +28,7 @@ public class ContextConfig {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
         providers.put(type, new ConstructorInjectionProvider<>(type, injectConstructor));
+        componentProviders.put(type, new ConstructorInjectionProvider<>(type, injectConstructor));
     }
 
     public Context getContext() {
@@ -40,7 +43,11 @@ public class ContextConfig {
         };
     }
 
-    class ConstructorInjectionProvider<T> implements Provider<T> {
+    interface ComponentProvider<T> {
+        T get(Context context);
+    }
+
+    class ConstructorInjectionProvider<T> implements Provider<T>, ComponentProvider<T> {
         private Class<?> componentType;
         private Constructor<T> injectConstructor;
         private boolean constructing = false;
@@ -53,13 +60,18 @@ public class ContextConfig {
         // 预期将context作为参数传入
         @Override
         public T get() {
+            return get(getContext());
+        }
+
+        @Override
+        public T get(Context context) {
             if (constructing) throw new CyclicDependenciesException(componentType);
             try {
                 constructing = true;
                 Object[] dependencies = stream(injectConstructor.getParameters())
                         .map(p -> {
                             Class<?> type = p.getType();
-                            return getContext().get(type) // 每次创建Context，貌似也没啥问题，因为providers是单例的。
+                            return context.get(type) // 每次创建Context，貌似也没啥问题，因为providers是单例的。
                                     .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType()));
                         })
                         .toArray(Object[]::new);
