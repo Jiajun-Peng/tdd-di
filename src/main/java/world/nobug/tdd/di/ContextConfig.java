@@ -15,11 +15,9 @@ import static java.util.Arrays.stream;
 
 public class ContextConfig {
 
-    private Map<Class<?>, Provider<?>> providers = new HashMap<>();
     private Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
-        providers.put(type, () -> instance);
         componentProviders.put(type, context -> instance);
     }
 
@@ -27,7 +25,6 @@ public class ContextConfig {
     void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
-        providers.put(type, new ConstructorInjectionProvider<>(type, injectConstructor));
         componentProviders.put(type, new ConstructorInjectionProvider<>(type, injectConstructor));
     }
 
@@ -38,7 +35,7 @@ public class ContextConfig {
             public <Type> Optional<Type> get(Class<Type> type) {
                 // Context仅仅是将实现delegate给了ContextConfig中的providers
                 // 所以貌似每一次调用get方法都还是会重新创建一个新的Context对象
-                return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get());
+                return Optional.ofNullable(componentProviders.get(type)).map(provider -> (Type) provider.get(this));
             }
         };
     }
@@ -47,7 +44,7 @@ public class ContextConfig {
         T get(Context context);
     }
 
-    class ConstructorInjectionProvider<T> implements Provider<T>, ComponentProvider<T> {
+    class ConstructorInjectionProvider<T> implements ComponentProvider<T> {
         private Class<?> componentType;
         private Constructor<T> injectConstructor;
         private boolean constructing = false;
@@ -55,12 +52,6 @@ public class ContextConfig {
         public ConstructorInjectionProvider(Class<?> componentType, Constructor<T> injectConstructor) {
             this.componentType = componentType;
             this.injectConstructor = injectConstructor;
-        }
-
-        // 预期将context作为参数传入
-        @Override
-        public T get() {
-            return get(getContext());
         }
 
         @Override
