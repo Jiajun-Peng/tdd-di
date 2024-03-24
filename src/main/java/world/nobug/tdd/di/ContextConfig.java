@@ -1,7 +1,6 @@
 package world.nobug.tdd.di;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Provider;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -15,17 +14,17 @@ import static java.util.Arrays.stream;
 
 public class ContextConfig {
 
-    private Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
+    private Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
-        componentProviders.put(type, context -> instance);
+        providers.put(type, context -> instance);
     }
 
     public <Type, Implementation extends Type>
     void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
-        componentProviders.put(type, new ConstructorInjectionProvider<>(type, injectConstructor));
+        providers.put(type, new ConstructorInjectionProvider<>(type, injectConstructor));
     }
 
     public Context getContext() {
@@ -35,7 +34,7 @@ public class ContextConfig {
             public <Type> Optional<Type> get(Class<Type> type) {
                 // Context仅仅是将实现delegate给了ContextConfig中的providers
                 // 所以貌似每一次调用get方法都还是会重新创建一个新的Context对象
-                return Optional.ofNullable(componentProviders.get(type)).map(provider -> (Type) provider.get(this));
+                return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get(this));
             }
         };
     }
