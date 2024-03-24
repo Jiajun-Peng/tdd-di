@@ -50,6 +50,7 @@ public class ContextConfig {
             this.injectConstructor = injectConstructor;
         }
 
+        // 预期将context作为参数传入
         @Override
         public T get() {
             if (constructing) throw new CyclicDependenciesException(componentType);
