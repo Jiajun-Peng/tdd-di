@@ -58,7 +58,6 @@ public class ContextConfig {
     class ConstructorInjectionProvider<T> implements ComponentProvider<T> {
         private Class<?> componentType;
         private Constructor<T> injectConstructor;
-        private boolean constructing = false;
 
         public ConstructorInjectionProvider(Class<?> componentType, Constructor<T> injectConstructor) {
             this.componentType = componentType;
@@ -67,24 +66,14 @@ public class ContextConfig {
 
         @Override
         public T get(Context context) {
-            if (constructing) throw new CyclicDependenciesException(componentType);
             try {
-                constructing = true;
                 Object[] dependencies = stream(injectConstructor.getParameters())
-                        .map(p -> {
-                            Class<?> type = p.getType();
-                            return context.get(type) // 每次创建Context，貌似也没啥问题，因为providers是单例的。
-                                    .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType()));
-                        })
+                        .map(p -> context.get(p.getType()).get())
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
-            } catch (CyclicDependenciesException e) {
-                throw new CyclicDependenciesException(componentType, e);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 // 如果时catch Exception的话，就无法抛出DependencyNotFoundException
                 throw new RuntimeException(e);
-            } finally {
-                constructing = false; // 不需要重置为false也可以通过测试，但是为了保险起见，还是重置为false
             }
         }
     }
