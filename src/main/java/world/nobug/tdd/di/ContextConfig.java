@@ -35,11 +35,7 @@ public class ContextConfig {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
         providers.put(type, new ConstructorInjectionProvider<>(type, injectConstructor));
-        dependencies.put(type, getCollect(injectConstructor));
-    }
-
-    private static <Type, Implementation extends Type> List<Class<?>> getCollect(Constructor<Implementation> injectConstructor) {
-        return stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList());
+        dependencies.put(type, stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList()));
     }
 
     public Context getContext() {
@@ -95,7 +91,7 @@ public class ContextConfig {
 
         @Override
         public List<Class<?>> getDependencies() {
-            return getCollect(injectConstructor);
+            return stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList());
         }
     }
 
