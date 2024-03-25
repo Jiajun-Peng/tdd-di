@@ -16,7 +16,17 @@ public class ContextConfig {
     private Map<Class<?>, List<Class<?>>> dependencies = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
-        providers.put(type, context -> instance);
+        providers.put(type, new ComponentProvider<Type>() {
+            @Override
+            public Type get(Context context) {
+                return instance;
+            }
+
+            @Override
+            public List<Class<?>> getDependencies() {
+                return List.of();
+            }
+        });
         dependencies.put(type, List.of());
     }
 
@@ -53,6 +63,8 @@ public class ContextConfig {
 
     interface ComponentProvider<T> {
         T get(Context context);
+
+        List<Class<?>> getDependencies();
     }
 
     class ConstructorInjectionProvider<T> implements ComponentProvider<T> {
@@ -75,6 +87,11 @@ public class ContextConfig {
                 // 如果时catch Exception的话，就无法抛出DependencyNotFoundException
                 throw new RuntimeException(e);
             }
+        }
+
+        @Override
+        public List<Class<?>> getDependencies() {
+            return null;
         }
     }
 
