@@ -30,13 +30,7 @@ public class ContextConfig {
 
     public Context getContext() {
         // check dependencies
-        for (Class<?> component : dependencies.keySet()) {
-            for (Class<?> dependency : dependencies.get(component)) {
-                if (!providers.containsKey(dependency)) {
-                    throw new DependencyNotFoundException(component, dependency);
-                }
-            }
-        }
+        dependencies.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
@@ -45,6 +39,16 @@ public class ContextConfig {
                 return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get(this));
             }
         };
+    }
+
+    private void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
+        for (Class<?> dependency : dependencies.get(component)) {
+            if (!providers.containsKey(dependency)) throw new DependencyNotFoundException(component, dependency);
+            if (visiting.contains(dependency)) throw new CyclicDependenciesException(visiting);
+            visiting.push(dependency);
+            checkDependencies(dependency, visiting);
+            visiting.pop();
+        }
     }
 
     interface ComponentProvider<T> {
