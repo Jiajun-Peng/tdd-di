@@ -13,7 +13,7 @@ public class ContainerTest {
     @Nested
     public class ComponentConstruction{
 
-        // TODO: instance
+        // instance
         @Test
         public void should_bind_type_to_a_specific_instance() {
 
