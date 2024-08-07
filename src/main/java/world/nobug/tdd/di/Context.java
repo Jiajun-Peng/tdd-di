@@ -6,7 +6,6 @@ import java.util.Map;
 
 public class Context {
 
-    private Map<Class<?>, Class<?>> componentImplementations = new HashMap<>();
     private Map<Class<?>, Provider<?>> providers = new HashMap<>();
 
     public <ComponentType> void bind(Class<ComponentType> type, ComponentType instance) {
@@ -15,7 +14,6 @@ public class Context {
 
     public <ComponentType, ComponentImplementation extends ComponentType>
     void bind(Class<ComponentType> type, Class<ComponentImplementation> implementation) {
-        componentImplementations.put(type, implementation);
         providers.put(type, () -> {
             try {
                 return implementation.getConstructor().newInstance();
