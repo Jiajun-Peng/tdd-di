@@ -8,15 +8,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class ContainerTest {
-
-    interface Component{
-    }
-
-    static class ComponentWithDefaultConstructor implements Component{
-        public ComponentWithDefaultConstructor(){
-        }
-    }
-
     Context context;
 
     @BeforeEach
@@ -80,5 +71,14 @@ public class ContainerTest {
     @Nested
     public class LifecycleManagement{
 
+    }
+}
+
+
+interface Component{
+}
+
+class ComponentWithDefaultConstructor implements Component{
+    public ComponentWithDefaultConstructor(){
     }
 }
