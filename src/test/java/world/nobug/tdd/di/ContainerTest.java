@@ -3,6 +3,7 @@ package world.nobug.tdd.di;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,20 @@ public class ContainerTest {
                 assertNotNull(instance);
                 assertInstanceOf(ComponentWithDefaultConstructor.class, instance);
             }
+
             // TODO: with dependencies
+            @Test
+            public void should_bind_type_to_a_class_with_inject_constructor() {
+                Dependency dependency = new Dependency() {
+                };
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                context.bind(Dependency.class, dependency);
+
+                Component instance = context.get(Component.class);
+                assertNotNull(instance);
+                assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
+            }
+
             // TODO: A -> B -> C
         }
 
@@ -78,7 +92,23 @@ public class ContainerTest {
 interface Component{
 }
 
+interface Dependency{
+}
+
 class ComponentWithDefaultConstructor implements Component{
     public ComponentWithDefaultConstructor(){
+    }
+}
+
+class ComponentWithInjectConstructor implements Component{
+    private Dependency dependency;
+
+    @Inject
+    public ComponentWithInjectConstructor(Dependency dependency){
+    }
+
+    // 用于测试验证dependency是否被注入
+    public Dependency getDependency() {
+        return dependency;
     }
 }
