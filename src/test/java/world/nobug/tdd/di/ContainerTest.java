@@ -1,5 +1,6 @@
 package world.nobug.tdd.di;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -47,7 +48,7 @@ public class ContainerTest {
                 assertInstanceOf(ComponentWithDefaultConstructor.class, instance);
             }
 
-            // TODO: with dependencies
+            // with dependencies
             @Test
             public void should_bind_type_to_a_class_with_inject_constructor() {
                 Dependency dependency = new Dependency() {
@@ -60,7 +61,21 @@ public class ContainerTest {
                 assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
             }
 
-            // TODO: A -> B -> C
+            // A -> B -> C
+            @Test
+            public void should_bind_type_to_a_class_with_inject_transitive_dependencies() {
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                context.bind(Dependency.class, DependencyWithInjectConstructor.class);
+                context.bind(String.class, "Hello World!");
+
+                Component instance = context.get(Component.class);
+                assertNotNull(instance);
+
+                Dependency dependency = context.get(Dependency.class);
+                assertNotNull(dependency);
+
+                assertEquals("Hello World!", ((DependencyWithInjectConstructor) dependency).getDependency());
+            }
         }
 
         @Nested
@@ -110,6 +125,20 @@ class ComponentWithInjectConstructor implements Component{
 
     // 用于测试验证dependency是否被注入
     public Dependency getDependency() {
+        return dependency;
+    }
+}
+
+class DependencyWithInjectConstructor implements Dependency{
+    // 直接使用字符串类型，不新建接口，简化开发
+    private String dependency;
+
+    @Inject
+    public DependencyWithInjectConstructor(String dependency){
+        this.dependency = dependency;
+    }
+
+    public String getDependency() {
         return dependency;
     }
 }
