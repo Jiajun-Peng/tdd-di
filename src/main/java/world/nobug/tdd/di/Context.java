@@ -1,10 +1,12 @@
 package world.nobug.tdd.di;
 
+import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class Context {
 
@@ -18,13 +20,26 @@ public class Context {
     void bind(Class<Type> type, Class<Implementation> implementation) {
         providers.put(type, () -> {
             try {
-                Constructor<Implementation> injectConstructor = implementation.getConstructor();
+                Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
                 // 根据构造函数的参数，获取依赖的实例
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
                         .map(p -> get(p.getType()))
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
             } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private static <Type> Constructor<Type> getInjectConstructor(
+            Class<Type> implementation) {
+        Stream<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
+                .filter(c -> c.isAnnotationPresent(Inject.class));
+        return (Constructor<Type>) injectConstructors.findFirst().orElseGet(() -> {
+            try {
+                return implementation.getConstructor();
+            } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         });

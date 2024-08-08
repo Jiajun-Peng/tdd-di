@@ -105,6 +105,7 @@ class ComponentWithInjectConstructor implements Component{
 
     @Inject
     public ComponentWithInjectConstructor(Dependency dependency){
+        this.dependency = dependency;
     }
 
     // 用于测试验证dependency是否被注入
