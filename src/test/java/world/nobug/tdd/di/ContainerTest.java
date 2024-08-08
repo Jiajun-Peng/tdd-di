@@ -3,6 +3,7 @@ package world.nobug.tdd.di;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,13 @@ public class ContainerTest {
         }
     }
 
+    Context context;
+
+    @BeforeEach
+    public void setUp(){
+        context = new Context();
+    }
+
     // 组件构造相关的测试类
     @Nested
     public class ComponentConstruction{
@@ -23,9 +31,6 @@ public class ContainerTest {
         // instance
         @Test
         public void should_bind_type_to_a_specific_instance() {
-
-            Context context = new Context();
-
             // 创建一个实现了 Component 接口的匿名内部类实例
             Component instance = new Component() {
             };
@@ -42,8 +47,6 @@ public class ContainerTest {
             // No args constructor
             @Test
             public void should_bind_type_to_a_class_with_default_constructor() {
-                Context context = new Context();
-
                 context.bind(Component.class, ComponentWithDefaultConstructor.class);
 
                 Component instance = context.get(Component.class);
