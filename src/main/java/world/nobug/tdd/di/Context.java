@@ -44,7 +44,7 @@ public class Context {
                 constructing = true;
                 // 根据构造函数的参数，获取依赖的实例
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> Context.this.get(p.getType()).orElseThrow(DependencyNotFoundException::new))
+                        .map(p -> Context.this.get(p.getType()).orElseThrow(() -> new DependencyNotFoundException(p.getType())))
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
