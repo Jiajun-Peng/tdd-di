@@ -26,7 +26,7 @@ public class Context {
     }
 
     private <Type> Provider<Object> getTypeProvider(Constructor<Type> injectConstructor) {
-        return () -> getImplementation(injectConstructor); // 预期将变成，new xxxx(injectConstructor)的形式
+        return new ConstructorInjectionProvider(injectConstructor); // 预期将变成，new xxxx(injectConstructor)的形式
     }
 
     private <Type> Type getImplementation(Constructor<Type> injectConstructor) {
@@ -38,6 +38,19 @@ public class Context {
             return injectConstructor.newInstance(dependencies);
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    class ConstructorInjectionProvider<T> implements Provider<T>{
+        private Constructor<T> injectConstructor;
+
+        public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
+            this.injectConstructor = injectConstructor;
+        }
+
+        @Override
+        public T get() {
+            return getImplementation(injectConstructor);
         }
     }
 
