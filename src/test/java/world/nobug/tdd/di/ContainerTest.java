@@ -32,7 +32,7 @@ public class ContainerTest {
             };
             context.bind(Component.class, instance);
 
-            assertSame(instance, context.get(Component.class).orElseThrow(DependencyNotFoundException::new));
+            assertSame(instance, context.get(Component.class).get());
         }
 
         // TODO: abstract class
@@ -53,7 +53,7 @@ public class ContainerTest {
             public void should_bind_type_to_a_class_with_default_constructor() {
                 context.bind(Component.class, ComponentWithDefaultConstructor.class);
 
-                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
+                Component instance = context.get(Component.class).get();
 
                 assertNotNull(instance);
                 assertInstanceOf(ComponentWithDefaultConstructor.class, instance);
@@ -67,7 +67,7 @@ public class ContainerTest {
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
                 context.bind(Dependency.class, dependency);
 
-                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
+                Component instance = context.get(Component.class).get();
                 assertNotNull(instance);
                 assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
             }
@@ -79,10 +79,10 @@ public class ContainerTest {
                 context.bind(Dependency.class, DependencyWithInjectConstructor.class);
                 context.bind(String.class, "Hello World!");
 
-                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
+                Component instance = context.get(Component.class).get();
                 assertNotNull(instance);
 
-                Dependency dependency = context.get(Dependency.class).orElseThrow(DependencyNotFoundException::new);
+                Dependency dependency = context.get(Dependency.class).get();
                 assertNotNull(dependency);
 
                 assertEquals("Hello World!", ((DependencyWithInjectConstructor) dependency).getDependency());
