@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -79,6 +80,12 @@ public class ContainerTest {
 
             // sad path
             // TODO：multi inject constructors
+            @Test
+            public void should_throw_exception_if_multi_inject_constructors_provided() {
+                assertThrows(IllegalComponentException.class, () -> {
+                    context.bind(Component.class, ComponentWithMultiInjectConstructors.class);
+                });
+            }
 
             // TODO: no default constructor and inject constructor
 
@@ -133,6 +140,17 @@ class ComponentWithInjectConstructor implements Component{
     // 用于测试验证dependency是否被注入
     public Dependency getDependency() {
         return dependency;
+    }
+}
+
+class ComponentWithMultiInjectConstructors implements Component{
+
+    @Inject
+    public ComponentWithMultiInjectConstructors(String name, Double value){
+    }
+
+    @Inject
+    public ComponentWithMultiInjectConstructors(String name){
     }
 }
 
