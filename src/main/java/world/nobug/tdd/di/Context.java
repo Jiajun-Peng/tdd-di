@@ -18,6 +18,11 @@ public class Context {
 
     public <Type, Implementation extends Type>
     void bind(Class<Type> type, Class<Implementation> implementation) {
+        Constructor<?>[] injectConstructors =
+                Arrays.stream(implementation.getConstructors()).filter(c -> c.isAnnotationPresent(Inject.class))
+                        .toArray(Constructor<?>[]::new);
+        if (injectConstructors.length > 1) throw new IllegalComponentException();
+
         providers.put(type, () -> {
             try {
                 Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
