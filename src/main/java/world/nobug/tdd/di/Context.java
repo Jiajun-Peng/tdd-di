@@ -26,7 +26,7 @@ public class Context {
             try {
                 // 根据构造函数的参数，获取依赖的实例
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> get_(p.getType()).orElseThrow(DependencyNotFoundException::new))
+                        .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
@@ -50,7 +50,7 @@ public class Context {
         });
     }
 
-    public <Type> Optional<Type> get_(Class<Type> type) {
+    public <Type> Optional<Type> get(Class<Type> type) {
         return Optional.ofNullable(providers.get(type)).map(provider -> (Type)provider.get());
     }
 }
