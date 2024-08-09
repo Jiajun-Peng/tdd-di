@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,14 @@ public class ContainerTest {
 
         // TODO: abstract class
         // TODO: interface
+
+        // TODO: component does not exist
+        @Test
+        public void should_return_empty_if_component_not_defined() {
+            Optional<Component> component = context.get_(Component.class);
+            assertTrue(component.isEmpty());
+        }
+
 
         @Nested
         public class ConstructorInjection{

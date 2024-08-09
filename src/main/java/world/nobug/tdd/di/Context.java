@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Context {
 
@@ -52,5 +53,9 @@ public class Context {
     public <Type> Type get(Class<Type> type) {
         if (!providers.containsKey(type)) throw new DependencyNotFoundException();
         return (Type) providers.get(type).get();
+    }
+
+    public <Type> Optional<Type> get_(Class<Type> type) {
+        return null;
     }
 }
