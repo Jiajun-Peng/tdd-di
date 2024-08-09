@@ -22,7 +22,7 @@ public class Context {
     void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
-        providers.put(type, new ConstructorInjectionProvider(injectConstructor));
+        providers.put(type, new ConstructorInjectionProvider(type, injectConstructor));
     }
 
     public <Type> Optional<Type> get(Class<Type> type) {
@@ -30,10 +30,12 @@ public class Context {
     }
 
     class ConstructorInjectionProvider<T> implements Provider<T>{
+        private Class<?> componentType;
         private Constructor<T> injectConstructor;
         private boolean constructing = false;
 
-        public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
+        public ConstructorInjectionProvider(Class<?> componentType, Constructor<T> injectConstructor) {
+            this.componentType = componentType;
             this.injectConstructor = injectConstructor;
         }
 
@@ -44,7 +46,9 @@ public class Context {
                 constructing = true;
                 // 根据构造函数的参数，获取依赖的实例
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> Context.this.get(p.getType()).orElseThrow(() -> new DependencyNotFoundException(p.getType())))
+                        .map(p -> Context.this.get(p.getType())
+                                .orElseThrow(() -> new DependencyNotFoundException(
+                                        componentType, p.getType())))
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
