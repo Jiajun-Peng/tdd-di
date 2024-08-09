@@ -22,6 +22,9 @@ public class Context {
                 Arrays.stream(implementation.getConstructors()).filter(c -> c.isAnnotationPresent(Inject.class))
                         .toArray(Constructor<?>[]::new);
         if (injectConstructors.length > 1) throw new IllegalComponentException();
+        if (injectConstructors.length < 1 &&
+                Arrays.stream(implementation.getConstructors()).noneMatch(c -> c.getParameterCount() == 0))
+            throw new IllegalComponentException();
 
         providers.put(type, () -> {
             try {

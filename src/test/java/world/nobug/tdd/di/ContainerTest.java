@@ -87,7 +87,7 @@ public class ContainerTest {
                 });
             }
 
-            // TODO: no default constructor and inject constructor
+            // no default constructor and inject constructor
             @Test
             public void should_throw_exception_if_no_inject_constructor_nor_default_constructor_provided() {
                 assertThrows(IllegalComponentException.class, () -> {
