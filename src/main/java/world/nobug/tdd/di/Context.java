@@ -22,17 +22,23 @@ public class Context {
     void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
-        providers.put(type, () -> {
-            try {
-                // 根据构造函数的参数，获取依赖的实例
-                Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
-                        .toArray(Object[]::new);
-                return injectConstructor.newInstance(dependencies);
-            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        providers.put(type, getTypeProvider(injectConstructor));
+    }
+
+    private <Type> Provider<Object> getTypeProvider(Constructor<Type> injectConstructor) {
+        return () -> getImplementation(injectConstructor); // 预期将变成，new xxxx(injectConstructor)的形式
+    }
+
+    private <Type> Type getImplementation(Constructor<Type> injectConstructor) {
+        try {
+            // 根据构造函数的参数，获取依赖的实例
+            Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
+                    .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
+                    .toArray(Object[]::new);
+            return injectConstructor.newInstance(dependencies);
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static <Type> Constructor<Type> getInjectConstructor(
