@@ -115,11 +115,19 @@ public class ContainerTest {
                 });
             }
 
-            // TODO： cyclic dependencies
-            @Test
+            // cyclic dependencies
+            @Test // A -> B -> A
             public void should_throw_exception_if_cyclic_dependencies() {
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
                 context.bind(Dependency.class, DependencyDependedOnComponent.class);
+
+                assertThrows(CyclicDependenciesException.class, () -> context.get(Component.class));
+            }
+            @Test // A -> B -> C -> A
+            public void should_throw_exception_if_transitive_cyclic_dependencies() {
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                context.bind(Dependency.class, DependencyDependedOnAnotherDependency.class);
+                context.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class);
 
                 assertThrows(CyclicDependenciesException.class, () -> context.get(Component.class));
             }
@@ -156,6 +164,9 @@ interface Component{
 }
 
 interface Dependency{
+}
+
+interface AnotherDependency{
 }
 
 class ComponentWithDefaultConstructor implements Component{
@@ -215,5 +226,23 @@ class DependencyDependedOnComponent implements Dependency{
     @Inject
     public DependencyDependedOnComponent(Component component){
         this.component = component;
+    }
+}
+
+class AnotherDependencyDependedOnComponent implements AnotherDependency{
+    private Component component;
+
+    @Inject
+    public AnotherDependencyDependedOnComponent(Component component){
+        this.component = component;
+    }
+}
+
+class DependencyDependedOnAnotherDependency implements Dependency{
+    private AnotherDependency anotherDependency;
+
+    @Inject
+    public DependencyDependedOnAnotherDependency(AnotherDependency anotherDependency){
+        this.anotherDependency = anotherDependency;
     }
 }
