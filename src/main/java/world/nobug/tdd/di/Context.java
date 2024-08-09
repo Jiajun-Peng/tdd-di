@@ -27,6 +27,7 @@ public class Context {
 
     class ConstructorInjectionProvider<T> implements Provider<T>{
         private Constructor<T> injectConstructor;
+        private boolean constructing = false;
 
         public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
             this.injectConstructor = injectConstructor;
@@ -34,7 +35,9 @@ public class Context {
 
         @Override
         public T get() {
+            if (constructing) throw new CyclicDependenciesException();
             try {
+                constructing = true;
                 // 根据构造函数的参数，获取依赖的实例
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
                         .map(p -> Context.this.get(p.getType()).orElseThrow(DependencyNotFoundException::new))
@@ -42,6 +45,8 @@ public class Context {
                 return injectConstructor.newInstance(dependencies);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
+            } finally {
+                constructing = false;
             }
         }
     }
