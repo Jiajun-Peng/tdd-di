@@ -88,6 +88,12 @@ public class ContainerTest {
             }
 
             // TODO: no default constructor and inject constructor
+            @Test
+            public void should_throw_exception_if_no_inject_constructor_nor_default_constructor_provided() {
+                assertThrows(IllegalComponentException.class, () -> {
+                    context.bind(Component.class, ComponentWithNoInjectConstructorNorDefaultConstructor.class);
+                });
+            }
 
             // TODO: dependencies not exist
         }
@@ -153,6 +159,13 @@ class ComponentWithMultiInjectConstructors implements Component{
     public ComponentWithMultiInjectConstructors(String name){
     }
 }
+
+class ComponentWithNoInjectConstructorNorDefaultConstructor implements Component {
+
+    public ComponentWithNoInjectConstructorNorDefaultConstructor(String name) {
+    }
+}
+
 
 class DependencyWithInjectConstructor implements Dependency{
     // 直接使用字符串类型，不新建接口，简化开发
