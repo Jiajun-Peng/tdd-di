@@ -38,7 +38,7 @@ public class ContainerTest {
         // TODO: abstract class
         // TODO: interface
 
-        // TODO: component does not exist
+        // component does not exist
         @Test
         public void should_return_empty_if_component_not_defined() {
             Optional<Component> component = context.get(Component.class);
