@@ -41,7 +41,7 @@ public class Context {
 
         @Override
         public T get() {
-            if (constructing) throw new CyclicDependenciesException();
+            if (constructing) throw new CyclicDependenciesException(componentType);
             try {
                 constructing = true;
                 // 根据构造函数的参数，获取依赖的实例
@@ -51,6 +51,9 @@ public class Context {
                                         componentType, p.getType())))
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
+            } catch (CyclicDependenciesException e) {
+                Class<?>[] components = e.getComponents();
+                throw new CyclicDependenciesException(componentType, components);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             } finally {
