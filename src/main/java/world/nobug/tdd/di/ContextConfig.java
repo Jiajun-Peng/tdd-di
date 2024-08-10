@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class ContextConfig {
+public class ContextConfig implements Context {
 
     private Map<Class<?>, Provider<?>> providers = new HashMap<>();
 
@@ -25,6 +25,7 @@ public class ContextConfig {
         providers.put(type, new ConstructorInjectionProvider(type, injectConstructor));
     }
 
+    @Override
     public <Type> Optional<Type> get(Class<Type> type) {
         return Optional.ofNullable(providers.get(type)).map(provider -> (Type)provider.get());
     }
