@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,7 +155,15 @@ public class ContainerTest {
                 context.bind(Dependency.class, DependencyDependedOnAnotherDependency.class);
                 context.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class);
 
-                assertThrows(CyclicDependenciesException.class, () -> context.get(Component.class));
+                CyclicDependenciesException exception =
+                        assertThrows(CyclicDependenciesException.class, () -> context.get(Component.class));
+
+                List<Class<?>> components = Arrays.stream(exception.getComponents()).toList();
+
+                assertEquals(3, components.size());
+                assertTrue(components.contains(Component.class));
+                assertTrue(components.contains(Dependency.class));
+                assertTrue(components.contains(AnotherDependency.class));
             }
 
         }
