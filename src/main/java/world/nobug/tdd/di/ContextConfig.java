@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class Context {
+public class ContextConfig {
 
     private Map<Class<?>, Provider<?>> providers = new HashMap<>();
 
@@ -46,7 +46,7 @@ public class Context {
                 constructing = true;
                 // 根据构造函数的参数，获取依赖的实例
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> Context.this.get(p.getType())
+                        .map(p -> ContextConfig.this.get(p.getType())
                                 .orElseThrow(() -> new DependencyNotFoundException(
                                         componentType, p.getType())))
                         .toArray(Object[]::new);
