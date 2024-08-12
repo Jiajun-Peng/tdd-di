@@ -89,7 +89,7 @@ public class ContextConfig {
 
         @Override
         public List<Class<?>> getDependencies() {
-            return null;
+            return Arrays.asList(injectConstructor.getParameterTypes());
         }
     }
 
