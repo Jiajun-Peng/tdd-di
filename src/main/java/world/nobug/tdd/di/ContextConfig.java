@@ -1,7 +1,6 @@
 package world.nobug.tdd.di;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Provider;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -12,11 +11,9 @@ import java.util.Optional;
 
 public class ContextConfig {
 
-    private Map<Class<?>, Provider<?>> providers = new HashMap<>();
     private Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
-        providers.put(type, () -> instance);
         componentProviders.put(type, context -> instance);
     }
 
@@ -24,7 +21,6 @@ public class ContextConfig {
     void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
-        providers.put(type, new ConstructorInjectionProvider(type, injectConstructor));
         componentProviders.put(type, new ConstructorInjectionProvider(type, injectConstructor));
     }
 
@@ -32,7 +28,7 @@ public class ContextConfig {
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
-                return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get());
+                return Optional.ofNullable(componentProviders.get(type)).map(provider -> (Type) provider.get(this));
             }
         };
     }
@@ -41,7 +37,7 @@ public class ContextConfig {
         T get(Context context);
     }
 
-    class ConstructorInjectionProvider<T> implements Provider<T>, ComponentProvider<T>{
+    class ConstructorInjectionProvider<T> implements ComponentProvider<T>{
         private Class<?> componentType;
         private Constructor<T> injectConstructor;
         private boolean constructing = false;
@@ -49,11 +45,6 @@ public class ContextConfig {
         public ConstructorInjectionProvider(Class<?> componentType, Constructor<T> injectConstructor) {
             this.componentType = componentType;
             this.injectConstructor = injectConstructor;
-        }
-
-        @Override
-        public T get() {
-            return get(getContext());
         }
 
         @Override
