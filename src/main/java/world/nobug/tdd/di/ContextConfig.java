@@ -58,7 +58,6 @@ public class ContextConfig {
     class ConstructorInjectionProvider<T> implements ComponentProvider<T>{
         private Class<?> componentType;
         private Constructor<T> injectConstructor;
-        private boolean constructing = false;
 
         public ConstructorInjectionProvider(Class<?> componentType, Constructor<T> injectConstructor) {
             this.componentType = componentType;
@@ -67,26 +66,14 @@ public class ContextConfig {
 
         @Override
         public T get(Context context) {
-            if (constructing) throw new CyclicDependenciesException(componentType);
             try {
-                constructing = true;
                 // 根据构造函数的参数，获取依赖的实例
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> {
-                            Class<?> type = p.getType();
-                            return context.get(type)
-                                    .orElseThrow(() -> new DependencyNotFoundException(
-                                            componentType, p.getType()));
-                        })
+                        .map(p -> context.get(p.getType()).get())
                         .toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
-            } catch (CyclicDependenciesException e) {
-                Class<?>[] components = e.getComponents();
-                throw new CyclicDependenciesException(componentType, components);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
-            } finally {
-                constructing = false;
             }
         }
     }
