@@ -127,7 +127,7 @@ public class ContainerTest {
                 config.bind(Dependency.class, DependencyWithInjectConstructor.class); // 缺失 String 类型的依赖
 
                 DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> {
-                    config.getContext().get(Component.class);
+                    config.getContext();
                 });
 
                 assertEquals(String.class, exception.getDependency());
