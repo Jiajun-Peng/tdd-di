@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Stack;
 
 public class ContextConfig {
 
@@ -33,6 +34,7 @@ public class ContextConfig {
             for (Class<?> dependency : dependencies.get(component)) {
                 if (!providers.containsKey(dependency)) throw new DependencyNotFoundException(component, dependency);
             }
+            checkDependencies(component, new Stack<>());
         }
         return new Context() {
             @Override
@@ -40,6 +42,17 @@ public class ContextConfig {
                 return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get(this));
             }
         };
+    }
+
+    // 深度优先遍历 检查 component 的依赖的访问记录
+    // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
+    private void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
+        for (Class<?> dependency : dependencies.get(component)) {
+            if (visiting.contains(dependency)) throw new CyclicDependenciesException(visiting);
+            visiting.push(dependency);
+            checkDependencies(dependency, visiting);
+            visiting.pop();
+        }
     }
 
     interface ComponentProvider<T> {
