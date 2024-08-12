@@ -13,7 +13,6 @@ import java.util.Stack;
 public class ContextConfig {
 
     private Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
-    private Map<Class<?>, List<Class<?>>> dependencies = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
         providers.put(type, new ComponentProvider<Type>() {
@@ -27,7 +26,6 @@ public class ContextConfig {
                 return List.of();
             }
         });
-        dependencies.put(type, List.of());
     }
 
     public <Type, Implementation extends Type>
@@ -35,7 +33,6 @@ public class ContextConfig {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
         providers.put(type, new ConstructorInjectionProvider(injectConstructor));
-        dependencies.put(type, Arrays.asList(injectConstructor.getParameterTypes()));
     }
 
     public Context getContext() {
