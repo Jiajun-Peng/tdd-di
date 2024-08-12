@@ -24,7 +24,7 @@ public class ContextConfig {
     void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
-        providers.put(type, new ConstructorInjectionProvider(type, injectConstructor));
+        providers.put(type, new ConstructorInjectionProvider(injectConstructor));
         dependencies.put(type, Arrays.asList(injectConstructor.getParameterTypes()));
     }
 
@@ -56,11 +56,9 @@ public class ContextConfig {
     }
 
     class ConstructorInjectionProvider<T> implements ComponentProvider<T>{
-        private Class<?> componentType;
         private Constructor<T> injectConstructor;
 
-        public ConstructorInjectionProvider(Class<?> componentType, Constructor<T> injectConstructor) {
-            this.componentType = componentType;
+        public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
             this.injectConstructor = injectConstructor;
         }
 
