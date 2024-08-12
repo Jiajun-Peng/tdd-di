@@ -31,9 +31,6 @@ public class ContextConfig {
     public Context getContext() {
         // check dependencies
         for (Class<?> component : dependencies.keySet()) {
-            for (Class<?> dependency : dependencies.get(component)) {
-                if (!providers.containsKey(dependency)) throw new DependencyNotFoundException(component, dependency);
-            }
             checkDependencies(component, new Stack<>());
         }
         return new Context() {
