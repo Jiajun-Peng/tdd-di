@@ -13,9 +13,11 @@ import java.util.Optional;
 public class ContextConfig {
 
     private Map<Class<?>, Provider<?>> providers = new HashMap<>();
+    private Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
         providers.put(type, () -> instance);
+        componentProviders.put(type, context -> instance);
     }
 
     public <Type, Implementation extends Type>
@@ -23,6 +25,7 @@ public class ContextConfig {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
         providers.put(type, new ConstructorInjectionProvider(type, injectConstructor));
+        componentProviders.put(type, new ConstructorInjectionProvider(type, injectConstructor));
     }
 
     public Context getContext() {
@@ -38,7 +41,7 @@ public class ContextConfig {
         T get(Context context);
     }
 
-    class ConstructorInjectionProvider<T> implements Provider<T>{
+    class ConstructorInjectionProvider<T> implements Provider<T>, ComponentProvider<T>{
         private Class<?> componentType;
         private Constructor<T> injectConstructor;
         private boolean constructing = false;
@@ -50,6 +53,11 @@ public class ContextConfig {
 
         @Override
         public T get() {
+            return get(getContext());
+        }
+
+        @Override
+        public T get(Context context) {
             if (constructing) throw new CyclicDependenciesException(componentType);
             try {
                 constructing = true;
@@ -57,7 +65,7 @@ public class ContextConfig {
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
                         .map(p -> {
                             Class<?> type = p.getType();
-                            return getContext().get(type)
+                            return context.get(type)
                                     .orElseThrow(() -> new DependencyNotFoundException(
                                             componentType, p.getType()));
                         })
