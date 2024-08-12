@@ -12,9 +12,11 @@ import java.util.Optional;
 public class ContextConfig {
 
     private Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
+    private Map<Class<?>, List<Class<?>>> dependencies = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
         componentProviders.put(type, context -> instance);
+        dependencies.put(type, List.of());
     }
 
     public <Type, Implementation extends Type>
@@ -22,9 +24,16 @@ public class ContextConfig {
         Constructor<Implementation> injectConstructor = getInjectConstructor(implementation);
 
         componentProviders.put(type, new ConstructorInjectionProvider(type, injectConstructor));
+        dependencies.put(type, Arrays.asList(injectConstructor.getParameterTypes()));
     }
 
     public Context getContext() {
+        // check dependencies
+        for (Class<?> component : dependencies.keySet()) {
+            for (Class<?> dependency : dependencies.get(component)) {
+                if (!componentProviders.containsKey(dependency)) throw new DependencyNotFoundException(component, dependency);
+            }
+        }
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
