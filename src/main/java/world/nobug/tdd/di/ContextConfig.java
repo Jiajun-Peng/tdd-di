@@ -39,7 +39,7 @@ public class ContextConfig {
     }
 
     public Context getContext() {
-        dependencies.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
+        providers.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
@@ -51,7 +51,7 @@ public class ContextConfig {
     // 深度优先遍历 检查 component 的依赖的访问记录
     // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
     private void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
-        for (Class<?> dependency : dependencies.get(component)) {
+        for (Class<?> dependency : providers.get(component).getDependencies()) {
             // 如果依赖的类型不存在，就提前停止递归
             if (!providers.containsKey(dependency)) throw new DependencyNotFoundException(component, dependency);
             if (visiting.contains(dependency)) throw new CyclicDependenciesException(visiting);
