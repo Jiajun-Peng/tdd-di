@@ -294,6 +294,19 @@ public class ContainerTest {
                 assertEquals(1, instance.superCalled);
             }
 
+            static class SubclassWithOverrideInjectMethodWithoutInject extends SuperClassWithInjectMethod {
+                void install() {
+                    super.install();
+                }
+            }
+            @Test
+            public void should_only_call_once_if_subclass_override_superclass_inject_method_without_inject() {
+                config.bind(SubclassWithOverrideInjectMethodWithoutInject.class, SubclassWithOverrideInjectMethodWithoutInject.class);
+                SubclassWithOverrideInjectMethodWithoutInject instance = config.getContext().get(SubclassWithOverrideInjectMethodWithoutInject.class).get();
+
+                assertEquals(0, instance.superCalled);
+            }
+
 
             // include dependencies from inject methods
             @Test
