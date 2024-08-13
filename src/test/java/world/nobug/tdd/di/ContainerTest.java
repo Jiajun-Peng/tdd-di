@@ -258,7 +258,7 @@ public class ContainerTest {
             }
 
             // TODO: override inject method from superclass
-            // TODO: include dependencies from inject methods
+            // include dependencies from inject methods
             @Test
             public void should_include_method_dependency_in_dependencies() {
                 ConstructorInjectionProvider<InjectMethodWithDependencies> provider =

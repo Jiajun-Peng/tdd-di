@@ -80,6 +80,8 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
     public List<Class<?>> getDependencies() {
         Stream<? extends Class<?>> b = injectFields.stream().map(Field::getType);
         Stream<? extends Class<?>> a = Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType);
-        return Stream.concat(a, b).collect(Collectors.toList());
+        Stream<Class<?>> c = injectMethods.stream().flatMap(m -> Arrays.stream(m.getParameterTypes()));
+        Stream<Class<?>> concat = Stream.concat(a, b);
+        return Stream.concat(concat, c).collect(Collectors.toList());
     }
 }
