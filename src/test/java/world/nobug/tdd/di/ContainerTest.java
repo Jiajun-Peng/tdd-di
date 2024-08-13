@@ -236,7 +236,27 @@ public class ContainerTest {
 
                 assertTrue(instance.called);
             }
-            // TODO: inject method with dependencies will be injected
+
+            static class InjectMethodWithDependencies {
+                Dependency dependency;
+
+                @Inject
+                void install(Dependency dependency) {
+                    this.dependency = dependency;
+                }
+            }
+            // inject method with dependencies will be injected
+            @Test
+            public void should_call_inject_method_with_dependencies() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(InjectMethodWithDependencies.class, InjectMethodWithDependencies.class);
+                InjectMethodWithDependencies instance = config.getContext().get(InjectMethodWithDependencies.class).get();
+
+                assertSame(dependency, instance.dependency);
+            }
+
             // TODO: override inject method from superclass
             // TODO: include dependencies from inject methods
             // TODO: throw exception if type parameter defined
