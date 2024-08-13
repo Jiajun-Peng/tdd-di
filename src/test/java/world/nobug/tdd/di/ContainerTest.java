@@ -14,10 +14,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 
 public class ContainerTest {
@@ -258,6 +256,31 @@ public class ContainerTest {
             }
 
             // TODO: override inject method from superclass
+            static class SuperClassWithInjectMethod {
+                boolean superCalled = false;
+                @Inject
+                void install() {
+                    superCalled = true;
+                }
+            }
+            static class SubclassWithInjectMethod extends SuperClassWithInjectMethod {
+                boolean subCalled = false;
+                @Inject
+                void installAnother() {
+                    subCalled = true;
+                }
+            }
+
+            @Test
+            public void should_inject_dependencies_via_inject_method_from_superclass() {
+                config.bind(SubclassWithInjectMethod.class, SubclassWithInjectMethod.class);
+                SubclassWithInjectMethod instance = config.getContext().get(SubclassWithInjectMethod.class).get();
+
+                assertTrue(instance.superCalled);
+                assertTrue(instance.subCalled);
+            }
+
+
             // include dependencies from inject methods
             @Test
             public void should_include_method_dependency_in_dependencies() {
