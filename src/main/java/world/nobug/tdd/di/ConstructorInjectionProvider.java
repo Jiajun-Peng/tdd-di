@@ -30,6 +30,8 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         while (current != Object.class) {
             injectMethods.addAll(Arrays.stream(current.getDeclaredMethods())
                     .filter(m -> m.isAnnotationPresent(Inject.class))
+                    .filter(m -> injectMethods.stream().noneMatch(im -> im.getName().equals(m.getName()) &&
+                            Arrays.equals(im.getParameterTypes(), m.getParameterTypes())))
                     .toList());
             current = (Class<T>) current.getSuperclass();
         }
