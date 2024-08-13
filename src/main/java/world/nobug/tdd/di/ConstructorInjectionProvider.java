@@ -24,9 +24,15 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
     }
 
     private List<Method> getInjectMethods(Class<T> component) {
-        return Arrays.stream(component.getDeclaredMethods())
-                .filter(m -> m.isAnnotationPresent(Inject.class))
-                .toList();
+        Class<T> current = component;
+        List<Method> injectMethods = new ArrayList<>();
+        while (current != Object.class) {
+            injectMethods.addAll(Arrays.stream(current.getDeclaredMethods())
+                    .filter(m -> m.isAnnotationPresent(Inject.class))
+                    .toList());
+            current = (Class<T>) current.getSuperclass();
+        }
+        return injectMethods;
     }
 
     private static <T> List<Field> getInjectFields(Class<T> component) {
