@@ -260,7 +260,7 @@ public class ContainerTest {
                 int superCalled = 0;
                 @Inject
                 void install() {
-                    superCalled = 1;
+                    superCalled++;
                 }
             }
             static class SubclassWithInjectMethod extends SuperClassWithInjectMethod {
@@ -278,6 +278,20 @@ public class ContainerTest {
 
                 assertEquals(1, instance.superCalled);
                 assertEquals(2, instance.subCalled);
+            }
+
+            static class SubclassWithOverrideInjectMethod extends SuperClassWithInjectMethod {
+                @Inject
+                void install() {
+                    super.install();
+                }
+            }
+            @Test
+            public void should_only_call_once_if_subclass_override_superclass_inject_method_with_inject() {
+                config.bind(SubclassWithOverrideInjectMethod.class, SubclassWithOverrideInjectMethod.class);
+                SubclassWithOverrideInjectMethod instance = config.getContext().get(SubclassWithOverrideInjectMethod.class).get();
+
+                assertEquals(1, instance.superCalled);
             }
 
 
