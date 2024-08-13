@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,10 +15,18 @@ import java.util.stream.Stream;
 class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     private Constructor<T> injectConstructor;
     private List<Field> injectFields;
+    private List<Method> injectMethods;
 
     public ConstructorInjectionProvider(Class<T> component) {
         this.injectConstructor = getInjectConstructor(component);
         this.injectFields = getInjectFields(component);
+        this.injectMethods = getInjectMethods(component);
+    }
+
+    private List<Method> getInjectMethods(Class<T> component) {
+        return Arrays.stream(component.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(Inject.class))
+                .toList();
     }
 
     private static <T> List<Field> getInjectFields(Class<T> component) {
@@ -58,6 +67,9 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
             T instance = injectConstructor.newInstance(dependencies);
             for (Field field : injectFields)
                 field.set(instance, context.get(field.getType()).get());
+            for (Method method : injectMethods) {
+                method.invoke(instance, Arrays.stream(method.getParameterTypes()).map(t -> context.get(t).get()).toArray());
+            }
             return instance;
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);

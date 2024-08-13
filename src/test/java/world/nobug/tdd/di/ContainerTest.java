@@ -228,7 +228,7 @@ public class ContainerTest {
                     called = true;
                 }
             }
-            // TODO: inject method with no dependencies will be called
+            // inject method with no dependencies will be called
             @Test
             public void should_call_inject_method_with_no_dependencies() {
                 config.bind(InjectMethodWithNoDependencies.class, InjectMethodWithNoDependencies.class);
