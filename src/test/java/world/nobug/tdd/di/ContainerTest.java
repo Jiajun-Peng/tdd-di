@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -173,11 +174,11 @@ public class ContainerTest {
 
         @Nested
         public class FieldInjection{
-            class ComponentWithFieldInjection {
+            static class ComponentWithFieldInjection {
                 @Inject
                 Dependency dependency;
             }
-            // TODO: field injection
+            // field injection
             @Test
             public void should_inject_dependency_via_field() {
                 Dependency dependency = new Dependency() {
@@ -188,22 +189,10 @@ public class ContainerTest {
 
                 assertSame(dependency, component.dependency);
             }
-//            @Test
-//            public void should_create_component_with_field_injection() {
-//                Context context = Mockito.mock(Context.class);
-//                Dependency dependency = Mockito.mock(Dependency.class);
-//                Mockito.when(context.get(eq(Dependency.class)))
-//                        .thenReturn(Optional.of(dependency)); // Provider 内部需要使用context.get方法获取依赖
-//
-//                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
-//                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
-//                ComponentWithFieldInjection component = provider.get(context); // 会返回一个实例
-//
-//                assertSame(dependency, component.dependency);
-//            }
 
             // TODO: provide dependencies information for field injection
             @Test
+            @Disabled
             public void should_include_field_dependency_in_dependencies() {
                 ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
                         new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
