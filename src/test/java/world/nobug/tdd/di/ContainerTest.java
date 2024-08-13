@@ -1,11 +1,13 @@
 package world.nobug.tdd.di;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 
 public class ContainerTest {
@@ -170,6 +173,72 @@ public class ContainerTest {
 
         @Nested
         public class FieldInjection{
+            class ComponentWithFieldInjection {
+                @Inject
+                Dependency dependency;
+            }
+            // TODO: field injection
+            @Test
+            public void should_inject_dependency_via_field() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
+                ComponentWithFieldInjection component = config.getContext().get(ComponentWithFieldInjection.class).get();
+
+                assertSame(dependency, component.dependency);
+            }
+            @Test
+            public void should_create_component_with_field_injection() {
+                Context context = Mockito.mock(Context.class);
+                Dependency dependency = Mockito.mock(Dependency.class);
+                Mockito.when(context.get(eq(Dependency.class)))
+                        .thenReturn(Optional.of(dependency)); // Provider 内部需要使用context.get方法获取依赖
+
+                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
+                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
+                ComponentWithFieldInjection component = provider.get(context); // 会返回一个实例
+
+                assertSame(dependency, component.dependency);
+            }
+            // TODO: throw exception if dependency not found
+            @Test
+            public void should_throw_exception_if_filed_dependency_not_found() {
+                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
+
+                assertThrows(DependencyNotFoundException.class, () -> config.getContext());
+            }
+            @Test
+            public void should_include_field_dependency_in_dependencies() {
+                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
+                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
+
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+            // TODO: throw exception if cyclic dependency
+            class DependencyWithFieldInjection implements Dependency{
+                @Inject
+                ComponentWithFieldInjection component;
+            }
+            @Test
+            public void should_throw_exception_when_filed_has_cyclic_dependencies() {
+                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
+                config.bind(Dependency.class, DependencyWithFieldInjection.class);
+
+                assertThrows(CyclicDependenciesException.class, () -> config.getContext());
+            }
+            @Test
+            public void should_include_field_dependency_in_dependencies_() {
+                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
+                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
+
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
+
+
+            // TODO: throw exception if filed is final
+
 
         }
 
