@@ -192,6 +192,7 @@ public class ContainerTest {
 
                 assertSame(dependency, component.dependency);
             }
+            // field injection in subclass
             @Test
             public void should_inject_dependency_via_superclass_inject_filed() {
                 Dependency dependency = new Dependency() {
