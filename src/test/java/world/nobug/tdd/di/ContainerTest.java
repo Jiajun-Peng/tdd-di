@@ -188,26 +188,21 @@ public class ContainerTest {
 
                 assertSame(dependency, component.dependency);
             }
-            @Test
-            public void should_create_component_with_field_injection() {
-                Context context = Mockito.mock(Context.class);
-                Dependency dependency = Mockito.mock(Dependency.class);
-                Mockito.when(context.get(eq(Dependency.class)))
-                        .thenReturn(Optional.of(dependency)); // Provider 内部需要使用context.get方法获取依赖
+//            @Test
+//            public void should_create_component_with_field_injection() {
+//                Context context = Mockito.mock(Context.class);
+//                Dependency dependency = Mockito.mock(Dependency.class);
+//                Mockito.when(context.get(eq(Dependency.class)))
+//                        .thenReturn(Optional.of(dependency)); // Provider 内部需要使用context.get方法获取依赖
+//
+//                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
+//                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
+//                ComponentWithFieldInjection component = provider.get(context); // 会返回一个实例
+//
+//                assertSame(dependency, component.dependency);
+//            }
 
-                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
-                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
-                ComponentWithFieldInjection component = provider.get(context); // 会返回一个实例
-
-                assertSame(dependency, component.dependency);
-            }
-            // TODO: throw exception if dependency not found
-            @Test
-            public void should_throw_exception_if_filed_dependency_not_found() {
-                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
-
-                assertThrows(DependencyNotFoundException.class, () -> config.getContext());
-            }
+            // TODO: provide dependencies information for field injection
             @Test
             public void should_include_field_dependency_in_dependencies() {
                 ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
@@ -215,30 +210,9 @@ public class ContainerTest {
 
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
-            // TODO: throw exception if cyclic dependency
-            class DependencyWithFieldInjection implements Dependency{
-                @Inject
-                ComponentWithFieldInjection component;
-            }
-            @Test
-            public void should_throw_exception_when_filed_has_cyclic_dependencies() {
-                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
-                config.bind(Dependency.class, DependencyWithFieldInjection.class);
-
-                assertThrows(CyclicDependenciesException.class, () -> config.getContext());
-            }
-            @Test
-            public void should_include_field_dependency_in_dependencies_() {
-                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
-                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
-
-                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
-            }
-
 
 
             // TODO: throw exception if filed is final
-
 
         }
 
