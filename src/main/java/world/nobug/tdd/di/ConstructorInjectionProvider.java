@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,6 +33,7 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
                     .toList());
             current = (Class<T>) current.getSuperclass();
         }
+        Collections.reverse(injectMethods);
         return injectMethods;
     }
 
