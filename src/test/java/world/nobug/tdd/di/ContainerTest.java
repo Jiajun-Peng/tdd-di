@@ -219,8 +219,27 @@ public class ContainerTest {
         }
 
         @Nested
-        public class MethodInjection{
+        public class MethodInjection {
+            static class InjectMethodWithNoDependencies {
+                boolean called = false; // 用于验证方法是否被调用
 
+                @Inject
+                void install() {
+                    called = true;
+                }
+            }
+            // TODO: inject method with no dependencies will be called
+            @Test
+            public void should_call_inject_method_with_no_dependencies() {
+                config.bind(InjectMethodWithNoDependencies.class, InjectMethodWithNoDependencies.class);
+                InjectMethodWithNoDependencies instance = config.getContext().get(InjectMethodWithNoDependencies.class).get();
+
+                assertTrue(instance.called);
+            }
+            // TODO: inject method with dependencies will be injected
+            // TODO: override inject method from superclass
+            // TODO: include dependencies from inject methods
+            // TODO: throw exception if type parameter defined
         }
 
     }
