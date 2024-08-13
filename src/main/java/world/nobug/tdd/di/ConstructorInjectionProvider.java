@@ -32,6 +32,10 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
                     .filter(m -> m.isAnnotationPresent(Inject.class))
                     .filter(m -> injectMethods.stream().noneMatch(im -> im.getName().equals(m.getName()) &&
                             Arrays.equals(im.getParameterTypes(), m.getParameterTypes())))
+                    .filter(m -> Arrays.stream(component.getDeclaredMethods())
+                            .filter(m1 -> !m1.isAnnotationPresent(Inject.class))
+                            .noneMatch(m1 -> m1.getName().equals(m.getName()) &&
+                                    Arrays.equals(m1.getParameterTypes(), m.getParameterTypes())))
                     .toList());
             current = (Class<T>) current.getSuperclass();
         }
