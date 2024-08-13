@@ -259,6 +259,15 @@ public class ContainerTest {
 
             // TODO: override inject method from superclass
             // TODO: include dependencies from inject methods
+            @Test
+            public void should_include_method_dependency_in_dependencies() {
+                ConstructorInjectionProvider<InjectMethodWithDependencies> provider =
+                        new ConstructorInjectionProvider<>(InjectMethodWithDependencies.class);
+
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
+
             // TODO: throw exception if type parameter defined
         }
 
