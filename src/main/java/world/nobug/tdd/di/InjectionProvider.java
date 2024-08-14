@@ -76,14 +76,16 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     public T get(Context context) {
         try {
             // 根据构造函数的参数，获取依赖的实例
-            Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                    .map(p -> context.get(p.getType()).get())
-                    .toArray(Object[]::new);
+            Object[] dependencies =
+                    Arrays.stream(injectConstructor.getParameterTypes())
+                    .map(t -> context.get(t).get()).toArray();
             T instance = injectConstructor.newInstance(dependencies);
             for (Field field : injectFields)
                 field.set(instance, context.get(field.getType()).get());
             for (Method method : injectMethods) {
-                method.invoke(instance, Arrays.stream(method.getParameterTypes()).map(t -> context.get(t).get()).toArray());
+                method.invoke(instance,
+                        Arrays.stream(method.getParameterTypes())
+                        .map(t -> context.get(t).get()).toArray());
             }
             return instance;
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
