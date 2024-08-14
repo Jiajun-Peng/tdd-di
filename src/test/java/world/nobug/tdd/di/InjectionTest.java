@@ -30,7 +30,7 @@ public class InjectionTest {
     public class ConstructorInjection {
         // No args constructor
         @Test
-        public void should_bind_type_to_a_class_with_default_constructor() {
+        public void should_call_default_constructor_if_no_inject_constructor() {
             Component instance = new ConstructorInjectionProvider<>(ComponentWithDefaultConstructor.class).get(context);
 
             assertNotNull(instance);
@@ -39,7 +39,7 @@ public class InjectionTest {
 
         // with dependencies
         @Test
-        public void should_bind_type_to_a_class_with_inject_constructor() {
+        public void should_inject_dependency_via_inject_constructor() {
             ComponentWithInjectConstructor instance = new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
 
             assertNotNull(instance);
