@@ -27,8 +27,10 @@ public class InjectionTest {
         // No args constructor
         @Test
         public void should_bind_type_to_a_class_with_default_constructor() {
-            config.bind(Component.class, ComponentWithDefaultConstructor.class);
-            Component instance = config.getContext().get(Component.class).get();
+            Class<Component> type = Component.class;
+            Class<ComponentWithDefaultConstructor> implementation = ComponentWithDefaultConstructor.class;
+
+            Component instance = getComponent(type, implementation);
 
             assertNotNull(instance);
             assertInstanceOf(ComponentWithDefaultConstructor.class, instance);
@@ -108,6 +110,12 @@ public class InjectionTest {
                     provider.getDependencies().toArray(Class<?>[]::new));
         }
 
+    }
+
+    private <T, I extends T> T getComponent(Class<T> type, Class<I> implementation) {
+        config.bind(type, implementation);
+        T instance = config.getContext().get(type).get();
+        return instance;
     }
 
     @Nested
