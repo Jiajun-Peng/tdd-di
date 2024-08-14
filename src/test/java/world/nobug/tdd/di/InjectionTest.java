@@ -7,10 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import jakarta.inject.Inject;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @Nested
 public class InjectionTest {
@@ -19,10 +22,14 @@ public class InjectionTest {
     Dependency dependency = new Dependency() {
     };
 
+    Context context = Mockito.mock(Context.class);
+
     @BeforeEach
     public void setUp() {
         config = new ContextConfig();
         config.bind(Dependency.class, dependency);
+
+        Mockito.when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
     }
 
     @Nested
@@ -108,9 +115,8 @@ public class InjectionTest {
     }
 
     private <T, I extends T> T getComponent(Class<T> type, Class<I> implementation) {
-        config.bind(type, implementation);
-        T instance = config.getContext().get(type).get();
-        return instance;
+        ConstructorInjectionProvider<I> provider = new ConstructorInjectionProvider<>(implementation);
+        return provider.get(context);
     }
 
     @Nested
