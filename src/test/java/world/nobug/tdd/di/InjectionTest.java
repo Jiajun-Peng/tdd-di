@@ -126,9 +126,6 @@ public class InjectionTest {
         // field injection
         @Test
         public void should_inject_dependency_via_field() {
-            Dependency dependency = new Dependency() {
-            };
-            config.bind(Dependency.class, dependency);
 
             ComponentWithFieldInjection component = getComponent(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
 
@@ -138,9 +135,6 @@ public class InjectionTest {
         // field injection in subclass
         @Test
         public void should_inject_dependency_via_superclass_inject_filed() {
-            Dependency dependency = new Dependency() {
-            };
-            config.bind(Dependency.class, dependency);
 
             SubclassWithFieldInjection component = getComponent(SubclassWithFieldInjection.class, SubclassWithFieldInjection.class);
 
@@ -203,10 +197,6 @@ public class InjectionTest {
         // inject method with dependencies will be injected
         @Test
         public void should_call_inject_method_with_dependencies() {
-            Dependency dependency = new Dependency() {
-            };
-            config.bind(Dependency.class, dependency);
-
             InjectMethodWithDependencies instance = getComponent(InjectMethodWithDependencies.class, InjectMethodWithDependencies.class);
 
             assertSame(dependency, instance.dependency);
