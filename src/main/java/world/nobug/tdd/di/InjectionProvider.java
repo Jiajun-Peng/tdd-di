@@ -37,7 +37,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         List<Method> injectMethods = new ArrayList<>();
         while (current != Object.class) {
             injectMethods.addAll(injectable(current.getDeclaredMethods())
-                    .filter(m -> injectMethods.stream().noneMatch(isOverride(m)))
+                    .filter(m -> isOverrideByInjectMethod(m, injectMethods))
                     .filter(m -> Arrays.stream(component.getDeclaredMethods())
                             .filter(m1 -> !m1.isAnnotationPresent(Inject.class))
                             .noneMatch(isOverride(m)))
@@ -46,6 +46,10 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         }
         Collections.reverse(injectMethods);
         return injectMethods;
+    }
+
+    private static boolean isOverrideByInjectMethod(Method m, List<Method> injectMethods) {
+        return injectMethods.stream().noneMatch(isOverride(m));
     }
 
     private static <T> List<Field> getInjectFields(Class<T> component) {
