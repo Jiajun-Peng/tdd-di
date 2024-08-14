@@ -37,24 +37,32 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         Class<T> current = component;
         List<Method> injectMethods = new ArrayList<>();
         while (current != Object.class) {
-            injectMethods.addAll(injectable(current.getDeclaredMethods())
-                    .filter(m -> isOverrideByInjectMethod(m, injectMethods))
-                    .filter(m -> isOverrideByNoInjectMethod(component, m))
-                    .toList());
+            injectMethods.addAll(getList(component, current, injectMethods));
             current = (Class<T>) current.getSuperclass();
         }
         Collections.reverse(injectMethods);
         return injectMethods;
     }
 
+    private static <T> List<Method> getList(Class<T> component, Class<T> current, List<Method> injectMethods) {
+        return injectable(current.getDeclaredMethods())
+                .filter(m -> isOverrideByInjectMethod(m, injectMethods))
+                .filter(m -> isOverrideByNoInjectMethod(component, m))
+                .toList();
+    }
+
     private static <T> List<Field> getInjectFields(Class<T> component) {
         List<Field> injectFields = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            injectFields.addAll(injectable(current.getDeclaredFields()).toList());
+            injectFields.addAll(getList(current));
             current = current.getSuperclass();
         }
         return injectFields;
+    }
+
+    private static List<Field> getList(Class<?> current) {
+        return injectable(current.getDeclaredFields()).toList();
     }
 
     private static <Type> Constructor<Type> getInjectConstructor(
