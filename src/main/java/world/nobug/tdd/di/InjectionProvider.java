@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
+class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     private Constructor<T> injectConstructor;
     private List<Field> injectFields;
     private List<Method> injectMethods;
 
-    public ConstructorInjectionProvider(Class<T> component) {
+    public InjectionProvider(Class<T> component) {
         if (Modifier.isAbstract(component.getModifiers())) throw new IllegalComponentException();
 
         this.injectConstructor = getInjectConstructor(component);
