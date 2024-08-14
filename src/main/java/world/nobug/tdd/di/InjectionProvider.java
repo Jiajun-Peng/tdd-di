@@ -38,18 +38,12 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         while (current != Object.class) {
             injectMethods.addAll(injectable(current.getDeclaredMethods())
                     .filter(m -> isOverrideByInjectMethod(m, injectMethods))
-                    .filter(m -> Arrays.stream(component.getDeclaredMethods())
-                            .filter(m1 -> !m1.isAnnotationPresent(Inject.class))
-                            .noneMatch(isOverride(m)))
+                    .filter(m -> isOverrideByNoInjectMethod(component, m))
                     .toList());
             current = (Class<T>) current.getSuperclass();
         }
         Collections.reverse(injectMethods);
         return injectMethods;
-    }
-
-    private static boolean isOverrideByInjectMethod(Method m, List<Method> injectMethods) {
-        return injectMethods.stream().noneMatch(isOverride(m));
     }
 
     private static <T> List<Field> getInjectFields(Class<T> component) {
@@ -114,5 +108,15 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     private static Predicate<Method> isOverride(Method m) {
         return im -> im.getName().equals(m.getName()) &&
                 Arrays.equals(im.getParameterTypes(), m.getParameterTypes());
+    }
+
+    private static <T> boolean isOverrideByNoInjectMethod(Class<T> component, Method m) {
+        return Arrays.stream(component.getDeclaredMethods())
+                .filter(m1 -> !m1.isAnnotationPresent(Inject.class))
+                .noneMatch(isOverride(m));
+    }
+
+    private static boolean isOverrideByInjectMethod(Method m, List<Method> injectMethods) {
+        return injectMethods.stream().noneMatch(isOverride(m));
     }
 }
