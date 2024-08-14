@@ -227,6 +227,14 @@ public class ContainerTest {
 
 
             // TODO: throw exception if filed is final
+            static class FinalInjectField {
+                @Inject
+                final Dependency dependency = null;
+            }
+            @Test
+            public void should_throw_exception_if_field_is_final() {
+                assertThrows(IllegalComponentException.class, () -> new ConstructorInjectionProvider<>(FinalInjectField.class));
+            }
 
         }
 
