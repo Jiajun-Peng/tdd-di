@@ -19,9 +19,7 @@ import org.mockito.Mockito;
 public class InjectionTest {
 
     ContextConfig config;
-    Dependency dependency = new Dependency() {
-    };
-
+    Dependency dependency = Mockito.mock(Dependency.class);
     Context context = Mockito.mock(Context.class);
 
     @BeforeEach
@@ -77,6 +75,9 @@ public class InjectionTest {
         public void should_bind_type_to_a_class_with_inject_transitive_dependencies() {
             config.bind(Dependency.class, DependencyWithInjectConstructor.class);
             config.bind(String.class, "Hello World!");
+
+            Mockito.when(context.get(eq(Dependency.class)))
+                    .thenReturn(Optional.of(new DependencyWithInjectConstructor("Hello World!")));
 
             Component instance = getComponent(Component.class, ComponentWithInjectConstructor.class);
 
