@@ -1,6 +1,7 @@
 package world.nobug.tdd.di;
 
 import jakarta.inject.Inject;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -53,8 +54,8 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         List<Field> injectFields = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            injectFields.addAll(Arrays.stream(current.getDeclaredFields())
-                    .filter(f -> f.isAnnotationPresent(Inject.class)).toList());
+            Field[] declaredFields = current.getDeclaredFields();
+            injectFields.addAll(injectable(declaredFields).toList());
             current = current.getSuperclass();
         }
         return injectFields;
@@ -103,5 +104,10 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         Stream<Class<?>> c = injectMethods.stream().flatMap(m -> Arrays.stream(m.getParameterTypes()));
         Stream<Class<?>> concat = Stream.concat(a, b);
         return Stream.concat(concat, c).collect(Collectors.toList());
+    }
+
+
+    private static <T extends AnnotatedElement> Stream<T> injectable(T[] declaredFields) {
+        return Arrays.stream(declaredFields).filter(f -> f.isAnnotationPresent(Inject.class));
     }
 }
