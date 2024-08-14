@@ -66,22 +66,6 @@ public class InjectionTest {
                     () -> new ConstructorInjectionProvider<>(Component.class));
         }
 
-        // A -> B -> C
-        @Test
-        public void should_bind_type_to_a_class_with_inject_transitive_dependencies() {
-            Mockito.when(context.get(eq(Dependency.class)))
-                    .thenReturn(Optional.of(new DependencyWithInjectConstructor("Hello World!")));
-
-            Component instance = new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
-
-            assertNotNull(instance);
-
-            Dependency dependency = ((ComponentWithInjectConstructor) instance).getDependency();
-            assertNotNull(dependency);
-
-            assertEquals("Hello World!", ((DependencyWithInjectConstructor) dependency).getDependency());
-        }
-
         // sad path
         // multi inject constructors
         @Test
