@@ -255,7 +255,7 @@ public class ContainerTest {
                 assertSame(dependency, instance.dependency);
             }
 
-            // TODO: override inject method from superclass
+            // override inject method from superclass
             static class SuperClassWithInjectMethod {
                 int superCalled = 0;
                 @Inject
