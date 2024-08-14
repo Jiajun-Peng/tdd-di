@@ -44,10 +44,10 @@ public class InjectionTest {
         // with dependencies
         @Test
         public void should_bind_type_to_a_class_with_inject_constructor() {
-            Component instance = new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
+            ComponentWithInjectConstructor instance = new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
 
             assertNotNull(instance);
-            assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
+            assertSame(dependency, instance.getDependency());
         }
 
         // abstract class
