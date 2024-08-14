@@ -16,10 +16,13 @@ import org.junit.jupiter.api.Test;
 public class InjectionTest {
 
     ContextConfig config;
+    Dependency dependency = new Dependency() {
+    };
 
     @BeforeEach
     public void setUp() {
         config = new ContextConfig();
+        config.bind(Dependency.class, dependency);
     }
 
     @Nested
@@ -36,10 +39,6 @@ public class InjectionTest {
         // with dependencies
         @Test
         public void should_bind_type_to_a_class_with_inject_constructor() {
-            Dependency dependency = new Dependency() {
-            };
-            config.bind(Dependency.class, dependency);
-
             Component instance = getComponent(Component.class, ComponentWithInjectConstructor.class);
 
             assertNotNull(instance);
