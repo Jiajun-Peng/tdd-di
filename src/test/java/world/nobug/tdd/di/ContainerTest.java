@@ -48,6 +48,10 @@ public class ContainerTest {
             assertTrue(component.isEmpty());
         }
 
+        @Nested
+        public class DependencyCheck {
+
+        }
 
         @Nested
         public class ConstructorInjection{
