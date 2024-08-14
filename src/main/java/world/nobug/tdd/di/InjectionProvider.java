@@ -35,8 +35,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         Class<T> current = component;
         List<Method> injectMethods = new ArrayList<>();
         while (current != Object.class) {
-            injectMethods.addAll(Arrays.stream(current.getDeclaredMethods())
-                    .filter(m -> m.isAnnotationPresent(Inject.class))
+            injectMethods.addAll(injectable(current.getDeclaredMethods())
                     .filter(m -> injectMethods.stream().noneMatch(im -> im.getName().equals(m.getName()) &&
                             Arrays.equals(im.getParameterTypes(), m.getParameterTypes())))
                     .filter(m -> Arrays.stream(component.getDeclaredMethods())
@@ -54,8 +53,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         List<Field> injectFields = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            Field[] declaredFields = current.getDeclaredFields();
-            injectFields.addAll(injectable(declaredFields).toList());
+            injectFields.addAll(injectable(current.getDeclaredFields()).toList());
             current = current.getSuperclass();
         }
         return injectFields;
@@ -63,8 +61,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     private static <Type> Constructor<Type> getInjectConstructor(
             Class<Type> implementation) {
-        List<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
-                .filter(c -> c.isAnnotationPresent(Inject.class)).toList();
+        List<Constructor<?>> injectConstructors = injectable(implementation.getConstructors()).toList();
         if (injectConstructors.size() > 1) {
             throw new IllegalComponentException();
         }
