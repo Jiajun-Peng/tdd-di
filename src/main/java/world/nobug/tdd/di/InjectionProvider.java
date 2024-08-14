@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,12 +37,10 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         List<Method> injectMethods = new ArrayList<>();
         while (current != Object.class) {
             injectMethods.addAll(injectable(current.getDeclaredMethods())
-                    .filter(m -> injectMethods.stream().noneMatch(im -> im.getName().equals(m.getName()) &&
-                            Arrays.equals(im.getParameterTypes(), m.getParameterTypes())))
+                    .filter(m -> injectMethods.stream().noneMatch(isOverride(m)))
                     .filter(m -> Arrays.stream(component.getDeclaredMethods())
                             .filter(m1 -> !m1.isAnnotationPresent(Inject.class))
-                            .noneMatch(m1 -> m1.getName().equals(m.getName()) &&
-                                    Arrays.equals(m1.getParameterTypes(), m.getParameterTypes())))
+                            .noneMatch(isOverride(m)))
                     .toList());
             current = (Class<T>) current.getSuperclass();
         }
@@ -106,5 +105,10 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     private static <T extends AnnotatedElement> Stream<T> injectable(T[] declaredFields) {
         return Arrays.stream(declaredFields).filter(f -> f.isAnnotationPresent(Inject.class));
+    }
+
+    private static Predicate<Method> isOverride(Method m) {
+        return im -> im.getName().equals(m.getName()) &&
+                Arrays.equals(im.getParameterTypes(), m.getParameterTypes());
     }
 }
