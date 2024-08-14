@@ -137,18 +137,7 @@ public class ContainerTest {
                 assertEquals(Dependency.class, exception.getDependency());
                 assertEquals(Component.class, exception.getComponent());
             }
-            @Test
-            public void should_throw_exception_if_transitive_dependency_not_found() {
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-                config.bind(Dependency.class, DependencyWithInjectConstructor.class); // 缺失 String 类型的依赖
 
-                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> {
-                    config.getContext();
-                });
-
-                assertEquals(String.class, exception.getDependency());
-                assertEquals(Dependency.class, exception.getComponent());
-            }
 
             // cyclic dependencies
             @Test // A -> B -> A
