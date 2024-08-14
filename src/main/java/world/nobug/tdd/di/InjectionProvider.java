@@ -3,6 +3,7 @@ package world.nobug.tdd.di;
 import jakarta.inject.Inject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -76,17 +77,11 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     public T get(Context context) {
         try {
             // 根据构造函数的参数，获取依赖的实例
-            Object[] dependencies =
-                    Arrays.stream(injectConstructor.getParameterTypes())
-                    .map(t -> context.get(t).get()).toArray();
-            T instance = injectConstructor.newInstance(dependencies);
+            T instance = injectConstructor.newInstance(toDependencies(context, injectConstructor));
             for (Field field : injectFields)
-                field.set(instance, context.get(field.getType()).get());
-            for (Method method : injectMethods) {
-                method.invoke(instance,
-                        Arrays.stream(method.getParameterTypes())
-                        .map(t -> context.get(t).get()).toArray());
-            }
+                field.set(instance, toDependency(context, field));
+            for (Method method : injectMethods)
+                method.invoke(instance, toDependencies(context, method));
             return instance;
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
@@ -120,5 +115,14 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     private static boolean isOverrideByInjectMethod(Method m, List<Method> injectMethods) {
         return injectMethods.stream().noneMatch(isOverride(m));
+    }
+
+    private static Object toDependency(Context context, Field field) {
+        return context.get(field.getType()).get();
+    }
+
+    private static <T> Object[] toDependencies(Context context, Executable executable) {
+        return Arrays.stream(executable.getParameterTypes())
+                .map(t -> context.get(t).get()).toArray();
     }
 }
