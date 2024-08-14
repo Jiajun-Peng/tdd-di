@@ -51,6 +51,52 @@ public class ContainerTest {
         @Nested
         public class DependencyCheck {
 
+            // dependencies not exist
+            @Test
+            public void should_throw_exception_if_dependency_not_found() {
+                config.bind(Component.class, ComponentWithInjectConstructor.class);
+
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> {
+                    config.getContext();
+                });
+
+                assertEquals(Dependency.class, exception.getDependency());
+                assertEquals(Component.class, exception.getComponent());
+            }
+
+
+            // cyclic dependencies
+            @Test // A -> B -> A
+            public void should_throw_exception_if_cyclic_dependencies() {
+                config.bind(Component.class, ComponentWithInjectConstructor.class);
+                config.bind(Dependency.class, DependencyDependedOnComponent.class);
+
+                CyclicDependenciesException exception =
+                        assertThrows(CyclicDependenciesException.class, () -> config.getContext());
+
+                Set<Class<?>> classes = Sets.newSet(exception.getComponents());
+
+                assertEquals(2, classes.size());
+                assertTrue(classes.contains(Component.class));
+                assertTrue(classes.contains(Dependency.class));
+            }
+            @Test // A -> B -> C -> A
+            public void should_throw_exception_if_transitive_cyclic_dependencies() {
+                config.bind(Component.class, ComponentWithInjectConstructor.class);
+                config.bind(Dependency.class, DependencyDependedOnAnotherDependency.class);
+                config.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class);
+
+                CyclicDependenciesException exception =
+                        assertThrows(CyclicDependenciesException.class, () -> config.getContext());
+
+                List<Class<?>> components = Arrays.stream(exception.getComponents()).toList();
+
+                assertEquals(3, components.size());
+                assertTrue(components.contains(Component.class));
+                assertTrue(components.contains(Dependency.class));
+                assertTrue(components.contains(AnotherDependency.class));
+            }
+
         }
 
         @Nested
@@ -127,52 +173,6 @@ public class ContainerTest {
                 assertThrows(IllegalComponentException.class, () -> {
                     config.bind(Component.class, ComponentWithNoInjectConstructorNorDefaultConstructor.class);
                 });
-            }
-
-            // dependencies not exist
-            @Test
-            public void should_throw_exception_if_dependency_not_found() {
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-
-                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> {
-                    config.getContext();
-                });
-
-                assertEquals(Dependency.class, exception.getDependency());
-                assertEquals(Component.class, exception.getComponent());
-            }
-
-
-            // cyclic dependencies
-            @Test // A -> B -> A
-            public void should_throw_exception_if_cyclic_dependencies() {
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-                config.bind(Dependency.class, DependencyDependedOnComponent.class);
-
-                CyclicDependenciesException exception =
-                        assertThrows(CyclicDependenciesException.class, () -> config.getContext());
-
-                Set<Class<?>> classes = Sets.newSet(exception.getComponents());
-
-                assertEquals(2, classes.size());
-                assertTrue(classes.contains(Component.class));
-                assertTrue(classes.contains(Dependency.class));
-            }
-            @Test // A -> B -> C -> A
-            public void should_throw_exception_if_transitive_cyclic_dependencies() {
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-                config.bind(Dependency.class, DependencyDependedOnAnotherDependency.class);
-                config.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class);
-
-                CyclicDependenciesException exception =
-                        assertThrows(CyclicDependenciesException.class, () -> config.getContext());
-
-                List<Class<?>> components = Arrays.stream(exception.getComponents()).toList();
-
-                assertEquals(3, components.size());
-                assertTrue(components.contains(Component.class));
-                assertTrue(components.contains(Dependency.class));
-                assertTrue(components.contains(AnotherDependency.class));
             }
 
         }
