@@ -75,7 +75,7 @@ public class ContainerTest {
                 assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
             }
 
-            // TODO: abstract class
+            // abstract class
             abstract class AbstractComponent implements Component{
                 @Inject
                 public AbstractComponent() {
