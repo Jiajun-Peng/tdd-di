@@ -340,7 +340,7 @@ public class ContainerTest {
             }
 
 
-            // TODO: throw exception if type parameter defined
+            // throw exception if type parameter defined
             static class InjectMethodWithTypeParameter {
                 @Inject
                 <T> void install() {
