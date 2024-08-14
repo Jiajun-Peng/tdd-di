@@ -18,15 +18,11 @@ import org.mockito.Mockito;
 @Nested
 public class InjectionTest {
 
-    ContextConfig config;
     Dependency dependency = Mockito.mock(Dependency.class);
     Context context = Mockito.mock(Context.class);
 
     @BeforeEach
     public void setUp() {
-        config = new ContextConfig();
-        config.bind(Dependency.class, dependency);
-
         Mockito.when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
     }
 
@@ -73,9 +69,6 @@ public class InjectionTest {
         // A -> B -> C
         @Test
         public void should_bind_type_to_a_class_with_inject_transitive_dependencies() {
-            config.bind(Dependency.class, DependencyWithInjectConstructor.class);
-            config.bind(String.class, "Hello World!");
-
             Mockito.when(context.get(eq(Dependency.class)))
                     .thenReturn(Optional.of(new DependencyWithInjectConstructor("Hello World!")));
 
@@ -83,7 +76,7 @@ public class InjectionTest {
 
             assertNotNull(instance);
 
-            Dependency dependency = config.getContext().get(Dependency.class).get();
+            Dependency dependency = ((ComponentWithInjectConstructor) instance).getDependency();
             assertNotNull(dependency);
 
             assertEquals("Hello World!", ((DependencyWithInjectConstructor) dependency).getDependency());
