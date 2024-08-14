@@ -25,6 +25,8 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         this.injectConstructor = getInjectConstructor(component);
         this.injectFields = getInjectFields(component);
         this.injectMethods = getInjectMethods(component);
+
+        if (injectFields.stream().anyMatch(f -> Modifier.isFinal(f.getModifiers()))) throw new IllegalComponentException();
     }
 
     private List<Method> getInjectMethods(Class<T> component) {

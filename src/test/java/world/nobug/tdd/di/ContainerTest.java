@@ -226,7 +226,7 @@ public class ContainerTest {
             }
 
 
-            // TODO: throw exception if filed is final
+            // throw exception if filed is final
             static class FinalInjectField {
                 @Inject
                 final Dependency dependency = null;
