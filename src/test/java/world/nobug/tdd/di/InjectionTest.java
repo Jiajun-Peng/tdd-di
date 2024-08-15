@@ -168,6 +168,20 @@ public class InjectionTest {
                 assertArrayEquals(new Class<?>[]{Dependency.class},
                         provider.getDependencies().toArray(Class<?>[]::new));
             }
+
+            // support provider inject field
+            static class ProviderInjectField {
+                @Inject
+                Provider<Dependency> dependency;
+            }
+
+            @Test
+            public void should_inject_provider_via_inject_field() {
+                ProviderInjectField instance = new InjectionProvider<>(ProviderInjectField.class).get(context);
+
+                assertNotNull(instance.dependency);
+                assertSame(dependencyProvider, instance.dependency);
+            }
         }
 
         @Nested
@@ -184,8 +198,6 @@ public class InjectionTest {
                         () -> new InjectionProvider<>(FinalInjectField.class));
             }
         }
-
-        // TODO: support inject field
 
     }
 
@@ -308,7 +320,7 @@ public class InjectionTest {
             }
 
             @Test
-            public void should_inject_provider_via_inject_constructor() {
+            public void should_inject_provider_via_inject_method() {
                 ProviderInjectMethod instance = new InjectionProvider<>(ProviderInjectMethod.class).get(context);
 
                 assertNotNull(instance.dependency);
