@@ -35,49 +35,27 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     }
 
     private static <T> List<Method> getInjectMethods(Class<T> component) {
-        BiFunction<List<Method>, Class<?>, List<Method>> function = (methods, current) -> getList(component, current, methods);
 
-        List<Method> injectMethods = traverse1(component, function);
+        List<Method> injectMethods = traverse(component, (methods, current) -> injectable(current.getDeclaredMethods())
+                .filter(m -> isOverrideByInjectMethod(m, methods))
+                .filter(m -> isOverrideByNoInjectMethod(component, m))
+                .toList());
         Collections.reverse(injectMethods);
         return injectMethods;
     }
 
-    private static <T> List<Method> traverse1(Class<T> component, BiFunction<List<Method>, Class<?>, List<Method>> function) {
-        List<Method> injectMethods = new ArrayList<>();
-        Class<?> current = component;
-        while (current != Object.class) {
-            injectMethods.addAll(function.apply(injectMethods, current));
-            current = current.getSuperclass();
-        }
-        return injectMethods;
-    }
-
-    private static <T> List<Method> getList(Class<T> component, Class<?> current, List<Method> injectMethods) {
-        return injectable(current.getDeclaredMethods())
-                .filter(m -> isOverrideByInjectMethod(m, injectMethods))
-                .filter(m -> isOverrideByNoInjectMethod(component, m))
-                .toList();
-    }
-
     private static <T> List<Field> getInjectFields(Class<T> component) {
-        BiFunction<List<Field>, Class<?>, List<Field>> function = InjectionProvider::getList;
-
-        List<Field> injectFields = traverse(component, function);
-        return injectFields;
+        return traverse(component, (injectField, current) -> injectable(current.getDeclaredFields()).toList());
     }
 
-    private static <T> List<Field> traverse(Class<T> component, BiFunction<List<Field>, Class<?>, List<Field>> function) {
-        List<Field> injectFields = new ArrayList<>();
+    private static <T> List<T> traverse(Class<?> component, BiFunction<List<T>, Class<?>, List<T>> finder) {
+        List<T> members = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            injectFields.addAll(function.apply(injectFields, current));
+            members.addAll(finder.apply(members, current));
             current = current.getSuperclass();
         }
-        return injectFields;
-    }
-
-    private static List<Field> getList(List<Field> injectFields, Class<?> current) {
-        return injectable(current.getDeclaredFields()).toList();
+        return members;
     }
 
     private static <Type> Constructor<Type> getInjectConstructor(
