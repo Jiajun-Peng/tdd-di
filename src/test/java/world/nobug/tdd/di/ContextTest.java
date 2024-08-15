@@ -1,6 +1,7 @@
 package world.nobug.tdd.di;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -140,6 +141,18 @@ public class ContextTest {
             Provider provider = (Provider<Component>)context.get(type).get();
 
             assertSame(component, provider.get());
+        }
+
+        @Test
+        public void should_not_retrieve_provider_bind_type_as_unsupported_container() {
+            Component component = new Component() {
+            };
+            config.bind(Component.class, component);
+            Context context = config.getContext();
+
+            ParameterizedType type = new TypeLiteral<List<Component>>(){}.getType();
+
+            assertFalse(context.get(type).isPresent());
         }
 
         @Test
