@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -124,8 +128,36 @@ public class ContextTest {
             assertTrue(component.isEmpty());
         }
 
-        // Context
         // TODO: could get Provider<T> from context
+        @Test
+        public void should_retrieve_provider_bind_type_as_provider() {
+            Component component = new Component() {
+            };
+            config.bind(Component.class, component);
+            Context context = config.getContext();
+
+            ParameterizedType type = new TypeLiteral<Provider<Component>>(){}.getType();
+            Provider provider = (Provider<Component>)context.get(type).get();
+
+            assertSame(component, provider.get());
+        }
+
+        @Test
+        @Disabled
+        public void java_api() {
+            Component component = new Component() {
+            };
+            ParameterizedType type = new TypeLiteral<Provider<Component>>(){}.getType();
+
+            assertEquals(Provider.class, type.getRawType());
+            assertEquals(Component.class, type.getActualTypeArguments()[0]);
+        }
+
+        static abstract class TypeLiteral<T> {
+            public ParameterizedType getType() {
+                return (ParameterizedType) ((ParameterizedType)(getClass().getGenericSuperclass())).getActualTypeArguments()[0];
+            }
+        }
 
     }
 

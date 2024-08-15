@@ -1,5 +1,6 @@
 package world.nobug.tdd.di;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,11 @@ public class ContextConfig {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
                 return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get(this));
+            }
+
+            @Override
+            public Optional get(ParameterizedType type) {
+                        return Optional.empty();
             }
         };
     }
