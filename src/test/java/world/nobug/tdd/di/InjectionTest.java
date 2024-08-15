@@ -285,4 +285,40 @@ public class InjectionTest {
         }
 
     }
+
+    static class ComponentWithDefaultConstructor implements Component{
+        public ComponentWithDefaultConstructor(){
+        }
+    }
+
+    static class ComponentWithInjectConstructor implements Component{
+        private Dependency dependency;
+
+        @Inject
+        public ComponentWithInjectConstructor(Dependency dependency){
+            this.dependency = dependency;
+        }
+
+        // 用于测试验证dependency是否被注入
+        public Dependency dependency() {
+            return dependency;
+        }
+    }
+
+    static class ComponentWithMultiInjectConstructors implements Component{
+
+        @Inject
+        public ComponentWithMultiInjectConstructors(String name, Double value){
+        }
+
+        @Inject
+        public ComponentWithMultiInjectConstructors(String name){
+        }
+    }
+
+    static class ComponentWithNoInjectConstructorNorDefaultConstructor implements Component {
+
+        public ComponentWithNoInjectConstructorNorDefaultConstructor(String name) {
+        }
+    }
 }
