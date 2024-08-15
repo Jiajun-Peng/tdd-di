@@ -8,14 +8,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
@@ -93,11 +91,10 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     @Override
     public List<Class<?>> getDependencies() {
-        Stream<? extends Class<?>> b = injectFields.stream().map(Field::getType);
-        Stream<? extends Class<?>> a = Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType);
-        Stream<Class<?>> c = injectMethods.stream().flatMap(m -> Arrays.stream(m.getParameterTypes()));
-        Stream<Class<?>> concat = Stream.concat(a, b);
-        return Stream.concat(concat, c).collect(Collectors.toList());
+        return Stream.concat(Stream.concat(Arrays.stream(injectConstructor.getParameterTypes()),
+                                injectFields.stream().map(Field::getType)),
+                injectMethods.stream().flatMap(m -> Arrays.stream(m.getParameterTypes())))
+                .toList();
     }
 
 
