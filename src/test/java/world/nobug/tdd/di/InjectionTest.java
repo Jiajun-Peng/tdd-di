@@ -9,6 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -19,11 +22,15 @@ import org.mockito.Mockito;
 public class InjectionTest {
 
     Dependency dependency = Mockito.mock(Dependency.class);
+    Provider<Dependency> dependencyProvider = Mockito.mock(Provider.class);
     Context context = Mockito.mock(Context.class);
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws NoSuchFieldException {
+        ParameterizedType providerType =
+                (ParameterizedType) InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
         Mockito.when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
+        Mockito.when(context.get(eq(providerType))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -57,6 +64,25 @@ public class InjectionTest {
                 assertArrayEquals(new Class<?>[]{Dependency.class},
                         provider.getDependencies().toArray(Class<?>[]::new));
             }
+
+            // support inject constructor
+            static class ProviderInjectConstructor {
+                Provider<Dependency> dependency;
+
+                @Inject
+                public ProviderInjectConstructor(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            @Test
+            public void should_inject_provider_via_inject_constructor() {
+                ProviderInjectConstructor instance = new InjectionProvider<>(ProviderInjectConstructor.class).get(context);
+
+                assertNotNull(instance.dependency);
+                assertSame(dependencyProvider, instance.dependency);
+            }
+
         }
 
         @Nested
@@ -97,8 +123,6 @@ public class InjectionTest {
                         ComponentWithNoInjectConstructorNorDefaultConstructor.class));
             }
         }
-
-        // TODO：support inject constructor
 
     }
 

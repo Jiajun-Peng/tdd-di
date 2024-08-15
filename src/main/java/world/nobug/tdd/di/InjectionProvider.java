@@ -8,6 +8,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -122,7 +124,11 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     }
 
     private static <T> Object[] toDependencies(Context context, Executable executable) {
-        return Arrays.stream(executable.getParameterTypes())
-                .map(t -> context.get(t).get()).toArray();
+        return Arrays.stream(executable.getParameters()).map(
+                p -> {
+                    Type type = p.getParameterizedType();
+                    if (type instanceof ParameterizedType) return context.get((ParameterizedType) type).get();
+                    return context.get((Class<?>) type).get();
+                }).toArray();
     }
 }
