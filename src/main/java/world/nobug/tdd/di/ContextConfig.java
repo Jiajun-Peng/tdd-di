@@ -1,5 +1,6 @@
 package world.nobug.tdd.di;
 
+import jakarta.inject.Provider;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,9 @@ public class ContextConfig {
 
             @Override
             public Optional get(ParameterizedType type) {
-                        return Optional.empty();
+                Class<?> componentType = (Class<?>)type.getActualTypeArguments()[0];
+                return Optional.ofNullable(providers.get(componentType))
+                        .map(provider -> (Provider<Object>) () -> provider.get(this));
             }
         };
     }
