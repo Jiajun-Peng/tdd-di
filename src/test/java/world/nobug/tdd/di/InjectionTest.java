@@ -65,7 +65,7 @@ public class InjectionTest {
                         provider.getDependencies().toArray(Class<?>[]::new));
             }
 
-            // support inject constructor
+            // support provider inject constructor
             static class ProviderInjectConstructor {
                 Provider<Dependency> dependency;
 
@@ -296,6 +296,24 @@ public class InjectionTest {
 
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
+
+            // support provider inject method
+            static class ProviderInjectMethod {
+                Provider<Dependency> dependency;
+
+                @Inject
+                public void install(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            @Test
+            public void should_inject_provider_via_inject_constructor() {
+                ProviderInjectMethod instance = new InjectionProvider<>(ProviderInjectMethod.class).get(context);
+
+                assertNotNull(instance.dependency);
+                assertSame(dependencyProvider, instance.dependency);
+            }
         }
 
         @Nested
@@ -312,8 +330,6 @@ public class InjectionTest {
                 assertThrows(IllegalComponentException.class, () -> new InjectionProvider<>(InjectMethodWithTypeParameter.class));
             }
         }
-
-        // TODO: support inject method
 
     }
 
