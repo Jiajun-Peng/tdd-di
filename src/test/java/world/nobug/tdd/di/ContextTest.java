@@ -129,7 +129,7 @@ public class ContextTest {
             assertTrue(component.isEmpty());
         }
 
-        // TODO: could get Provider<T> from context
+        // could get Provider<T> from context
         @Test
         public void should_retrieve_provider_bind_type_as_provider() {
             Component component = new Component() {
