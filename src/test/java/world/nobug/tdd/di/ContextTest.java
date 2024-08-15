@@ -124,6 +124,9 @@ public class ContextTest {
             assertTrue(component.isEmpty());
         }
 
+        // Context
+        // TODO: could get Provider<T> from context
+
     }
 
     @Nested

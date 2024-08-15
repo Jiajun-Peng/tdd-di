@@ -98,6 +98,8 @@ public class InjectionTest {
             }
         }
 
+        // TODO：support inject constructor
+
     }
 
     @Nested
@@ -158,6 +160,9 @@ public class InjectionTest {
                         () -> new InjectionProvider<>(FinalInjectField.class));
             }
         }
+
+        // TODO: support inject field
+
     }
 
     @Nested
@@ -283,6 +288,8 @@ public class InjectionTest {
                 assertThrows(IllegalComponentException.class, () -> new InjectionProvider<>(InjectMethodWithTypeParameter.class));
             }
         }
+
+        // TODO: support inject method
 
     }
 

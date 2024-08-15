@@ -8,6 +8,14 @@ public class ContainerTest {
     @Nested
     public class DependenciesSelection{
 
+        @Nested
+        public class ProviderType {
+        }
+
+        @Nested
+        public class Qualifier{
+        }
+
     }
 
     // 生命周期管理相关的测试类
