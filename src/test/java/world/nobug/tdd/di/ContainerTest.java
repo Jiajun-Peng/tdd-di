@@ -1,105 +1,9 @@
 package world.nobug.tdd.di;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import jakarta.inject.Inject;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.mockito.internal.util.collections.Sets;
 
 public class ContainerTest {
-    ContextConfig config;
-
-    @BeforeEach
-    public void setUp(){
-        config = new ContextConfig();
-    }
-
-    // 组件构造相关的测试类
-    @Nested
-    public class ComponentConstruction{
-
-        // instance
-        @Test
-        public void should_bind_type_to_a_specific_instance() {
-            // 创建一个实现了 Component 接口的匿名内部类实例
-            Component instance = new Component() {
-            };
-            config.bind(Component.class, instance);
-
-            assertSame(instance, config.getContext().get(Component.class).get());
-        }
-
-        // component does not exist
-        @Test
-        public void should_return_empty_if_component_not_defined() {
-            Optional<Component> component = config.getContext().get(Component.class);
-            assertTrue(component.isEmpty());
-        }
-
-        @Nested
-        public class DependencyCheck {
-
-            // dependencies not exist
-            @Test
-            public void should_throw_exception_if_dependency_not_found() {
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-
-                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> {
-                    config.getContext();
-                });
-
-                assertEquals(Dependency.class, exception.getDependency());
-                assertEquals(Component.class, exception.getComponent());
-            }
-
-
-            // cyclic dependencies
-            @Test // A -> B -> A
-            public void should_throw_exception_if_cyclic_dependencies() {
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-                config.bind(Dependency.class, DependencyDependedOnComponent.class);
-
-                CyclicDependenciesException exception =
-                        assertThrows(CyclicDependenciesException.class, () -> config.getContext());
-
-                Set<Class<?>> classes = Sets.newSet(exception.getComponents());
-
-                assertEquals(2, classes.size());
-                assertTrue(classes.contains(Component.class));
-                assertTrue(classes.contains(Dependency.class));
-            }
-            @Test // A -> B -> C -> A
-            public void should_throw_exception_if_transitive_cyclic_dependencies() {
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-                config.bind(Dependency.class, DependencyDependedOnAnotherDependency.class);
-                config.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class);
-
-                CyclicDependenciesException exception =
-                        assertThrows(CyclicDependenciesException.class, () -> config.getContext());
-
-                List<Class<?>> components = Arrays.stream(exception.getComponents()).toList();
-
-                assertEquals(3, components.size());
-                assertTrue(components.contains(Component.class));
-                assertTrue(components.contains(Dependency.class));
-                assertTrue(components.contains(AnotherDependency.class));
-            }
-
-        }
-
-    }
 
     // 依赖选择相关的测试类
     @Nested
@@ -117,6 +21,7 @@ public class ContainerTest {
 
 
 interface Component{
+    default Dependency dependency() {return null;}
 }
 
 interface Dependency{
@@ -139,7 +44,7 @@ class ComponentWithInjectConstructor implements Component{
     }
 
     // 用于测试验证dependency是否被注入
-    public Dependency getDependency() {
+    public Dependency dependency() {
         return dependency;
     }
 }
@@ -162,43 +67,3 @@ class ComponentWithNoInjectConstructorNorDefaultConstructor implements Component
 }
 
 
-class DependencyWithInjectConstructor implements Dependency{
-    // 直接使用字符串类型，不新建接口，简化开发
-    private String dependency;
-
-    @Inject
-    public DependencyWithInjectConstructor(String dependency){
-        this.dependency = dependency;
-    }
-
-    public String getDependency() {
-        return dependency;
-    }
-}
-
-class DependencyDependedOnComponent implements Dependency{
-    private Component component;
-
-    @Inject
-    public DependencyDependedOnComponent(Component component){
-        this.component = component;
-    }
-}
-
-class AnotherDependencyDependedOnComponent implements AnotherDependency{
-    private Component component;
-
-    @Inject
-    public AnotherDependencyDependedOnComponent(Component component){
-        this.component = component;
-    }
-}
-
-class DependencyDependedOnAnotherDependency implements Dependency{
-    private AnotherDependency anotherDependency;
-
-    @Inject
-    public DependencyDependedOnAnotherDependency(AnotherDependency anotherDependency){
-        this.anotherDependency = anotherDependency;
-    }
-}

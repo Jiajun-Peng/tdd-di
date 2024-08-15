@@ -46,7 +46,7 @@ public class InjectionTest {
                 ComponentWithInjectConstructor instance = new InjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
 
                 assertNotNull(instance);
-                assertSame(dependency, instance.getDependency());
+                assertSame(dependency, instance.dependency());
             }
 
             @Test

@@ -1,17 +1,18 @@
 package world.nobug.tdd.di;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -54,43 +55,85 @@ public class ContextTest {
             assertSame(instance, config.getContext().get(Component.class).get());
         }
 
-//        @ParameterizedTest(name = "supporting {0}")
-//        @MethodSource
-//        public void should_bind_type_to_an_injectable_component(Class<? extends Component> componentType) {
-//            Dependency dependency = new Dependency() {
-//            };
-//            config.bind(Dependency.class, dependency
-//            );
-//            config.bind(Component.class, componentType);
-//
-//            Optional<Component> component = config.getContext().get(Component.class);
-//            assertTrue(component.isPresent());
-//            assertSame(dependency, component.get());
-//        }
+        // 将一个测试泛化为多个测试，分别测试根据：构造器注入、字段注入和方法注入的情况
+        @ParameterizedTest(name = "supporting {0}")
+        @MethodSource
+        public void should_bind_type_to_an_injectable_component(Class<? extends Component> componentType) {
+            Dependency dependency = new Dependency() {
+            };
+            config.bind(Dependency.class, dependency);
+            config.bind(Component.class, componentType);
 
-//        public static Stream<Arguments> should_bind_type_to_an_injectable_component() {
-//            return Stream.of(
-//                    Arguments.of(ComponentWithInjectConstructor.class),
-//                    Arguments.of(ComponentWithInjectField.class),
-//                    Arguments.of(ComponentWithInjectMethod.class)
-//            );
-//        }
+            Optional<Component> component = config.getContext().get(Component.class);
+
+            assertTrue(component.isPresent());
+            assertSame(dependency, component.get().dependency());
+        }
+
+        public static Stream<Arguments> should_bind_type_to_an_injectable_component() {
+            return Stream.of(
+                    Arguments.of(Named.of("Constructor Injection", TypeBinding.ConstructorInjection.class)),
+                    Arguments.of(Named.of("Field Injection", TypeBinding.FieldInjection.class)),
+                    Arguments.of(Named.of("Method Injection", TypeBinding.MethodInjection.class))
+            );
+        }
+
+
+        static class ConstructorInjection implements Component {
+            private Dependency dependency;
+
+            @Inject
+            public ConstructorInjection(Dependency dependency) {
+                this.dependency = dependency;
+            }
+
+            @Override
+            public Dependency dependency() {
+                return dependency;
+            }
+        }
+
+        static class FieldInjection implements Component {
+            @Inject
+            Dependency dependency; // 目前不支持注入私有字段
+
+            @Override
+            public Dependency dependency() {
+                return dependency;
+            }
+        }
+
+        static class MethodInjection implements Component {
+            private Dependency dependency;
+
+            @Inject
+            public void install(Dependency dependency) {
+                this.dependency = dependency;
+            }
+
+            @Override
+            public Dependency dependency() {
+                return dependency;
+            }
+        }
 
         // component does not exist
         @Test
-        public void should_return_empty_if_component_not_defined() {
+        public void should_retrieve_empty_for_unbind_type() {
             Optional<Component> component = config.getContext().get(Component.class);
             assertTrue(component.isEmpty());
         }
+
     }
 
     @Nested
     public class DependencyCheck {
 
         // dependencies not exist
-        @Test
-        public void should_throw_exception_if_dependency_not_found() {
-            config.bind(Component.class, ComponentWithInjectConstructor.class);
+        @ParameterizedTest
+        @MethodSource
+        public void should_throw_exception_if_dependency_not_found(Class<? extends Component> componentType) {
+            config.bind(Component.class, componentType);
 
             DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> {
                 config.getContext();
@@ -100,12 +143,40 @@ public class ContextTest {
             assertEquals(Component.class, exception.getComponent());
         }
 
+        public static Stream<Arguments> should_throw_exception_if_dependency_not_found() {
+            return Stream.of(
+                    Arguments.of(Named.of("Constructor Injection", DependencyCheck.MissingDependencyConstructor.class)),
+                    Arguments.of(Named.of("Field Injection", DependencyCheck.MissingDependencyField.class)),
+                    Arguments.of(Named.of("Method Injection", DependencyCheck.MissingDependencyMethod.class))
+            );
+        }
+
+        static class MissingDependencyConstructor implements Component{
+            @Inject
+            public MissingDependencyConstructor(Dependency dependency) {
+            }
+        }
+
+        static class MissingDependencyField implements Component {
+            @Inject
+            Dependency dependency;
+        }
+
+        static class MissingDependencyMethod implements Component {
+            @Inject
+            public void install(Dependency dependency) {
+            }
+        }
+
 
         // cyclic dependencies
-        @Test // A -> B -> A
-        public void should_throw_exception_if_cyclic_dependencies() {
-            config.bind(Component.class, ComponentWithInjectConstructor.class);
-            config.bind(Dependency.class, DependencyDependedOnComponent.class);
+        // A -> B -> A
+        @ParameterizedTest(name = "cyclic dependency between {0} and {1}")
+        @MethodSource
+        public void should_throw_exception_if_cyclic_dependencies(Class<? extends Component> componentType,
+                                                                  Class<? extends Dependency> dependencyType) {
+            config.bind(Component.class, componentType);
+            config.bind(Dependency.class, dependencyType);
 
             CyclicDependenciesException exception =
                     assertThrows(CyclicDependenciesException.class, () -> config.getContext());
@@ -117,11 +188,63 @@ public class ContextTest {
             assertTrue(classes.contains(Dependency.class));
         }
 
-        @Test // A -> B -> C -> A
-        public void should_throw_exception_if_transitive_cyclic_dependencies() {
-            config.bind(Component.class, ComponentWithInjectConstructor.class);
-            config.bind(Dependency.class, DependencyDependedOnAnotherDependency.class);
-            config.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class);
+        public static Stream<Arguments> should_throw_exception_if_cyclic_dependencies() {
+            List<Arguments> arguments = new ArrayList<>();
+            for (Named component : List.of(Named.of("Constructor Injection", DependencyCheck.CyclicComponentInjectConstructor.class),
+                    Named.of("Field Injection", DependencyCheck.CyclicComponentInjectField.class),
+                    Named.of("Method Injection", DependencyCheck.CyclicComponentInjectMethod.class))) {
+                for (Named dependency : List.of(Named.of("Constructor Injection", DependencyCheck.CyclicDependencyInjectConstructor.class),
+                        Named.of("Field Injection", DependencyCheck.CyclicDependencyInjectField.class),
+                        Named.of("Method Injection", DependencyCheck.CyclicDependencyInjectMethod.class))) {
+                    arguments.add(Arguments.of(component, dependency));
+                }
+            }
+            return arguments.stream();
+        }
+
+        static class CyclicComponentInjectConstructor implements Component {
+            @Inject
+            public CyclicComponentInjectConstructor(Dependency dependency) {
+            }
+        }
+
+        static class CyclicComponentInjectField implements Component {
+            @Inject
+            Dependency dependency;
+        }
+
+        static class CyclicComponentInjectMethod implements Component {
+            @Inject
+            public void install(Dependency dependency) {
+            }
+        }
+
+        static class CyclicDependencyInjectConstructor implements Dependency {
+            @Inject
+            public CyclicDependencyInjectConstructor(Component component) {
+            }
+        }
+
+        static class CyclicDependencyInjectField implements Dependency {
+            @Inject
+            Component component;
+        }
+
+        static class CyclicDependencyInjectMethod implements Dependency {
+            @Inject
+            public void install(Component component) {
+            }
+        }
+
+        // A -> B -> C -> A
+        @ParameterizedTest(name = "transitive cyclic dependency between {0}, {1} and {2}")
+        @MethodSource
+        public void should_throw_exception_if_transitive_cyclic_dependencies(Class<? extends Component> componentType,
+                                                                            Class<? extends Dependency> dependencyType,
+                                                                            Class<? extends AnotherDependency> anotherDependencyType) {
+            config.bind(Component.class, componentType);
+            config.bind(Dependency.class, dependencyType);
+            config.bind(AnotherDependency.class, anotherDependencyType);
 
             CyclicDependenciesException exception =
                     assertThrows(CyclicDependenciesException.class, () -> config.getContext());
@@ -134,5 +257,56 @@ public class ContextTest {
             assertTrue(components.contains(AnotherDependency.class));
         }
 
+        public static Stream<Arguments> should_throw_exception_if_transitive_cyclic_dependencies() {
+            List<Arguments> arguments = new ArrayList<>();
+            for (Named component : List.of(Named.of("Constructor Injection", DependencyCheck.CyclicComponentInjectConstructor.class),
+                    Named.of("Field Injection", DependencyCheck.CyclicComponentInjectField.class),
+                    Named.of("Method Injection", DependencyCheck.CyclicComponentInjectMethod.class))) {
+                for (Named dependency : List.of(Named.of("Constructor Injection", DependencyCheck.CyclicDependencyInjectConstructorWithAnotherDependency.class),
+                        Named.of("Field Injection", DependencyCheck.CyclicDependencyInjectFieldWithAnotherDependency.class),
+                        Named.of("Method Injection", DependencyCheck.CyclicDependencyInjectMethodWithAnotherDependency.class))) {
+                    for (Named anotherDependency : List.of(Named.of("Constructor Injection", DependencyCheck.CyclicDependencyInjectConstructorWithComponent.class),
+                            Named.of("Field Injection", DependencyCheck.CyclicDependencyInjectFieldWithComponent.class),
+                            Named.of("Method Injection", DependencyCheck.CyclicDependencyInjectMethodWithComponent.class))) {
+                        arguments.add(Arguments.of(component, dependency, anotherDependency));
+                    }
+                }
+            }
+            return arguments.stream();
+        }
+
+        static class CyclicDependencyInjectConstructorWithAnotherDependency implements Dependency {
+            @Inject
+            public CyclicDependencyInjectConstructorWithAnotherDependency(AnotherDependency anotherDependency) {
+            }
+        }
+
+        static class CyclicDependencyInjectFieldWithAnotherDependency implements Dependency {
+            @Inject
+            AnotherDependency anotherDependency;
+        }
+
+        static class CyclicDependencyInjectMethodWithAnotherDependency implements Dependency {
+            @Inject
+            public void install(AnotherDependency anotherDependency) {
+            }
+        }
+
+        static class CyclicDependencyInjectConstructorWithComponent implements AnotherDependency {
+            @Inject
+            public CyclicDependencyInjectConstructorWithComponent(Component component) {
+            }
+        }
+
+        static class CyclicDependencyInjectFieldWithComponent implements AnotherDependency {
+            @Inject
+            Component component;
+        }
+
+        static class CyclicDependencyInjectMethodWithComponent implements AnotherDependency {
+            @Inject
+            public void install(Component component) {
+            }
+        }
     }
 }
