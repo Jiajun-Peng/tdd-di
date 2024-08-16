@@ -2,6 +2,7 @@ package world.nobug.tdd.di;
 
 import jakarta.inject.Provider;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,10 @@ public class ContextConfig {
         T get(Context context);
 
         default List<Class<?>> getDependencies() {
+            return List.of();
+        }
+
+        default List<Type> getDependencyTypes() {
             return List.of();
         }
     }

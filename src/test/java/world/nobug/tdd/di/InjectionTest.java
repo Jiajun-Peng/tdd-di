@@ -65,6 +65,8 @@ public class InjectionTest {
                         provider.getDependencies().toArray(Class<?>[]::new));
             }
 
+            // TODO：should include dependency type from inject constructor
+
             // support provider inject constructor
             static class ProviderInjectConstructor {
                 Provider<Dependency> dependency;
@@ -168,6 +170,8 @@ public class InjectionTest {
                 assertArrayEquals(new Class<?>[]{Dependency.class},
                         provider.getDependencies().toArray(Class<?>[]::new));
             }
+
+            // TODO：should include dependency type from inject field
 
             // support provider inject field
             static class ProviderInjectField {
@@ -308,6 +312,8 @@ public class InjectionTest {
 
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
+
+            // TODO：should include dependency type from inject method
 
             // support provider inject method
             static class ProviderInjectMethod {
