@@ -179,6 +179,13 @@ public class InjectionTest {
             }
 
             // TODO：should include dependency type from inject field
+            @Test
+            public void should_include_provider_dependency_type_from_inject_field() {
+                InjectionProvider<ProviderInjectField> provider =
+                        new InjectionProvider<>(ProviderInjectField.class);
+
+                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencyTypes().toArray(Type[]::new));
+            }
 
             // support provider inject field
             static class ProviderInjectField {
