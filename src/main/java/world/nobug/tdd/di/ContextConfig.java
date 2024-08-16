@@ -91,14 +91,16 @@ public class ContextConfig {
     }
 
     private void checkContainerDependencies(Class<?> component, Type dependency) {
-        Class<?> componentType = getComponentType(dependency);
+        Ref ref = Ref.of(dependency);
+        Class<?> componentType = ref.getComponent();
         if (!providers.containsKey(componentType)) throw new DependencyNotFoundException(component,
                 componentType);
     }
 
     private void checkComponentDependencies(Class<?> component, Stack<Class<?>> visiting, Class<?> dependency) {
         // 如果依赖的类型不存在，就提前停止递归
-        Class<?> componentType = dependency;
+        Ref ref = Ref.of(dependency);
+        Class<?> componentType = ref.getComponent();
 
         if (!providers.containsKey(componentType)) throw new DependencyNotFoundException(component, componentType);
         if (visiting.contains(componentType)) throw new CyclicDependenciesException(visiting);
