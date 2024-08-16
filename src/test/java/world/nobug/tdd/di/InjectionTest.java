@@ -24,13 +24,13 @@ public class InjectionTest {
     Dependency dependency = Mockito.mock(Dependency.class);
     Provider<Dependency> dependencyProvider = Mockito.mock(Provider.class);
     Context context = Mockito.mock(Context.class);
+    ParameterizedType dependencyProviderType;
 
     @BeforeEach
     public void setUp() throws NoSuchFieldException {
-        ParameterizedType providerType =
-                (ParameterizedType) InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
+        dependencyProviderType = (ParameterizedType) InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
         Mockito.when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
-        Mockito.when(context.get(eq(providerType))).thenReturn(Optional.of(dependencyProvider));
+        Mockito.when(context.get(eq(dependencyProviderType))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -66,6 +66,13 @@ public class InjectionTest {
             }
 
             // TODO：should include dependency type from inject constructor
+            @Test
+            public void should_include_dependency_type_from_inject_constructor() {
+                InjectionProvider<ProviderInjectConstructor> provider =
+                        new InjectionProvider<>(ProviderInjectConstructor.class);
+
+                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencyTypes().toArray(Type[]::new));
+            }
 
             // support provider inject constructor
             static class ProviderInjectConstructor {
