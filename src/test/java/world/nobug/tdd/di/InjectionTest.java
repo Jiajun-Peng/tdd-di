@@ -61,8 +61,7 @@ public class InjectionTest {
                 InjectionProvider<ComponentWithInjectConstructor> provider =
                         new InjectionProvider<>(ComponentWithInjectConstructor.class);
 
-                assertArrayEquals(new Class<?>[]{Dependency.class},
-                        provider.getDependencies().toArray(Class<?>[]::new));
+                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencyTypes().toArray(Type[]::new));
             }
 
             // should include dependency type from inject constructor
@@ -174,8 +173,8 @@ public class InjectionTest {
                 InjectionProvider<ComponentWithFieldInjection> provider =
                         new InjectionProvider<>(ComponentWithFieldInjection.class);
 
-                assertArrayEquals(new Class<?>[]{Dependency.class},
-                        provider.getDependencies().toArray(Class<?>[]::new));
+                assertArrayEquals(new Type[]{Dependency.class},
+                        provider.getDependencyTypes().toArray(Type[]::new));
             }
 
             // should include dependency type from inject field
@@ -324,7 +323,7 @@ public class InjectionTest {
             public void should_include_dependency_from_inject_method() {
                 InjectionProvider<InjectMethodWithDependencies> provider = new InjectionProvider<>(InjectMethodWithDependencies.class);
 
-                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencyTypes().toArray(Type[]::new));
             }
 
             // should include dependency type from inject method
