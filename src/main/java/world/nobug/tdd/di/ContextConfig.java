@@ -83,30 +83,16 @@ public class ContextConfig {
     // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
     private void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
         for (Type dependency : providers.get(component).getDependencyTypes()) {
-            if (isContainerType(dependency))
-                checkContainerDependencies(component, dependency);
-            else
-                checkComponentDependencies(component, visiting, (Class<?>) dependency);
+            Ref ref = Ref.of(dependency);
+            // 如果依赖的类型不存在，就提前停止递归
+            if (!providers.containsKey(ref.getComponent())) throw new DependencyNotFoundException(component, ref.getComponent());
+            if (!ref.isContainer()) {
+                if (visiting.contains(ref.getComponent())) throw new CyclicDependenciesException(visiting);
+                visiting.push(ref.getComponent());
+                checkDependencies(ref.getComponent(), visiting);
+                visiting.pop();
+            }
         }
-    }
-
-    private void checkContainerDependencies(Class<?> component, Type dependency) {
-        Ref ref = Ref.of(dependency);
-        Class<?> componentType = ref.getComponent();
-        if (!providers.containsKey(componentType)) throw new DependencyNotFoundException(component,
-                componentType);
-    }
-
-    private void checkComponentDependencies(Class<?> component, Stack<Class<?>> visiting, Class<?> dependency) {
-        // 如果依赖的类型不存在，就提前停止递归
-        Ref ref = Ref.of(dependency);
-        Class<?> componentType = ref.getComponent();
-
-        if (!providers.containsKey(componentType)) throw new DependencyNotFoundException(component, componentType);
-        if (visiting.contains(componentType)) throw new CyclicDependenciesException(visiting);
-        visiting.push(componentType);
-        checkDependencies(componentType, visiting);
-        visiting.pop();
     }
 
     interface ComponentProvider<T> {
