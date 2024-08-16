@@ -218,18 +218,18 @@ public class ContextTest {
             }
         }
 
-        static class MissingDependencyProviderConstructor implements Dependency {
+        static class MissingDependencyProviderConstructor implements Component {
             @Inject
             public MissingDependencyProviderConstructor(Provider<Dependency> dependency){
             }
         }
 
-        static class MissingDependencyProviderField implements Dependency {
+        static class MissingDependencyProviderField implements Component {
             @Inject
             Provider<Dependency> dependency;
         }
 
-        static class MissingDependencyProviderMethod implements Dependency {
+        static class MissingDependencyProviderMethod implements Component {
             @Inject
             public void install(Provider<Dependency> dependency){
             }
@@ -374,6 +374,32 @@ public class ContextTest {
             @Inject
             public void install(Component component) {
             }
+        }
+
+        static class CyclicDependencyProviderInjectConstructor implements Dependency {
+            @Inject
+            public CyclicDependencyProviderInjectConstructor(Provider<Component> component) {
+            }
+        }
+        @Test
+        public void should_not_throw_exception_if_cyclic_dependencies_with_provider() {
+            config.bind(Component.class, CyclicComponentInjectConstructor.class);
+            config.bind(Dependency.class, CyclicDependencyProviderInjectConstructor.class);
+
+            assertTrue(config.getContext().get(Component.class).isPresent());
+        }
+
+        static class CyclicComponentProviderInjectConstructor implements Component {
+            @Inject
+            public CyclicComponentProviderInjectConstructor(Provider<Dependency> dependency) {
+            }
+        }
+        @Test
+        public void should_not_throw_exception_if_cyclic_dependencies_with_providers() {
+            config.bind(Component.class, CyclicComponentProviderInjectConstructor.class);
+            config.bind(Dependency.class, CyclicDependencyProviderInjectConstructor.class);
+
+            assertTrue(config.getContext().get(Component.class).isPresent());
         }
     }
 }
