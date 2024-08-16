@@ -178,7 +178,7 @@ public class InjectionTest {
                         provider.getDependencies().toArray(Class<?>[]::new));
             }
 
-            // TODO：should include dependency type from inject field
+            // should include dependency type from inject field
             @Test
             public void should_include_provider_dependency_type_from_inject_field() {
                 InjectionProvider<ProviderInjectField> provider =
