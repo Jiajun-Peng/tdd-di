@@ -27,37 +27,47 @@ public class ContextConfig {
         return new Context() {
             @Override
             public Optional get(Type type) {
-                if (type instanceof ParameterizedType) return get((ParameterizedType) type);
-                return get((Class<?>) type);
+                if (isContainerType(type)) return getContainer((ParameterizedType) type);
+                return getComponent((Class<?>) type);
             }
 
-            private  <Type> Optional<Type> get(Class<Type> type) {
+            private  <Type> Optional<Type> getComponent(Class<Type> type) {
                 return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get(this));
             }
 
-            private Optional get(ParameterizedType type) {
+            private Optional getContainer(ParameterizedType type) {
                 if (type.getRawType() != Provider.class) return Optional.empty();
-                Class<?> componentType = (Class<?>)type.getActualTypeArguments()[0];
-                return Optional.ofNullable(providers.get(componentType))
+                return Optional.ofNullable(providers.get(getComponentType(type)))
                         .map(provider -> (Provider<Object>) () -> provider.get(this));
             }
         };
+    }
+
+    private static Class<?> getComponentType(Type type) {
+        return (Class<?>) ((ParameterizedType)type).getActualTypeArguments()[0];
+    }
+
+    private static boolean isContainerType(Type type) {
+        return type instanceof ParameterizedType;
     }
 
     // 深度优先遍历 检查 component 的依赖的访问记录
     // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
     private void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
         for (Type dependency : providers.get(component).getDependencyTypes()) {
-            if (dependency instanceof Class<?>)
-                checkDependencies(component, visiting, (Class<?>) dependency);
-            if (dependency instanceof ParameterizedType) {
-                Class<?> providerType = (Class<?>) ((ParameterizedType)dependency).getActualTypeArguments()[0];
-                if (!providers.containsKey(providerType)) throw new DependencyNotFoundException(component, providerType);
-            }
+            if (isContainerType(dependency))
+                checkContainerDependencies(component, dependency);
+            else
+                checkComponentDependencies(component, visiting, (Class<?>) dependency);
         }
     }
 
-    private void checkDependencies(Class<?> component, Stack<Class<?>> visiting, Class<?> dependency) {
+    private void checkContainerDependencies(Class<?> component, Type dependency) {
+        if (!providers.containsKey(getComponentType(dependency))) throw new DependencyNotFoundException(component,
+                getComponentType(dependency));
+    }
+
+    private void checkComponentDependencies(Class<?> component, Stack<Class<?>> visiting, Class<?> dependency) {
         // 如果依赖的类型不存在，就提前停止递归
         if (!providers.containsKey(dependency)) throw new DependencyNotFoundException(component, dependency);
         if (visiting.contains(dependency)) throw new CyclicDependenciesException(visiting);
