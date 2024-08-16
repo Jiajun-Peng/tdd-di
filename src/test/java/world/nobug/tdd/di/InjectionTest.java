@@ -328,6 +328,12 @@ public class InjectionTest {
             }
 
             // TODO：should include dependency type from inject method
+            @Test
+            public void should_include_provider_dependency_type_from_inject_method() {
+                InjectionProvider<ProviderInjectMethod> provider = new InjectionProvider<>(ProviderInjectMethod.class);
+
+                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencyTypes().toArray(Type[]::new));
+            }
 
             // support provider inject method
             static class ProviderInjectMethod {
