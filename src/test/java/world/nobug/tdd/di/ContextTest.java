@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -196,9 +195,9 @@ public class ContextTest {
                     Arguments.of(Named.of("Constructor Injection", DependencyCheck.MissingDependencyConstructor.class)),
                     Arguments.of(Named.of("Field Injection", DependencyCheck.MissingDependencyField.class)),
                     Arguments.of(Named.of("Method Injection", DependencyCheck.MissingDependencyMethod.class)),
-                    Arguments.of(Named.of("Provider Inject Constructor", DependencyCheck.MissingDependencyProviderConstructor.class))
-                    // TODO: Provider Inject Field
-                    // TODO: Provider Inject Method
+                    Arguments.of(Named.of("Provider Inject Constructor", DependencyCheck.MissingDependencyProviderConstructor.class)),
+                    Arguments.of(Named.of("Provider Inject Field", DependencyCheck.MissingDependencyProviderField.class)),
+                    Arguments.of(Named.of("Provider Inject Method", DependencyCheck.MissingDependencyProviderMethod.class))
             );
         }
 
@@ -222,6 +221,17 @@ public class ContextTest {
         static class MissingDependencyProviderConstructor implements Dependency {
             @Inject
             public MissingDependencyProviderConstructor(Provider<Dependency> dependency){
+            }
+        }
+
+        static class MissingDependencyProviderField implements Dependency {
+            @Inject
+            Provider<Dependency> dependency;
+        }
+
+        static class MissingDependencyProviderMethod implements Dependency {
+            @Inject
+            public void install(Provider<Dependency> dependency){
             }
         }
 
