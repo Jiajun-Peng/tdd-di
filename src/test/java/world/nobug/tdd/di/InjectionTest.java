@@ -327,7 +327,7 @@ public class InjectionTest {
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
 
-            // TODO：should include dependency type from inject method
+            // should include dependency type from inject method
             @Test
             public void should_include_provider_dependency_type_from_inject_method() {
                 InjectionProvider<ProviderInjectMethod> provider = new InjectionProvider<>(ProviderInjectMethod.class);
