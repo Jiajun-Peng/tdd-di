@@ -65,9 +65,9 @@ public class InjectionTest {
                         provider.getDependencies().toArray(Class<?>[]::new));
             }
 
-            // TODO：should include dependency type from inject constructor
+            // should include dependency type from inject constructor
             @Test
-            public void should_include_dependency_type_from_inject_constructor() {
+            public void should_include_provider_dependency_type_from_inject_constructor() {
                 InjectionProvider<ProviderInjectConstructor> provider =
                         new InjectionProvider<>(ProviderInjectConstructor.class);
 
