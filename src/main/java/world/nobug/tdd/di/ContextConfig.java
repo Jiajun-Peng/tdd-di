@@ -71,14 +71,6 @@ public class ContextConfig {
         }
     }
 
-    private static Class<?> getComponentType(Type type) {
-        return (Class<?>) ((ParameterizedType)type).getActualTypeArguments()[0];
-    }
-
-    private static boolean isContainerType(Type type) {
-        return type instanceof ParameterizedType;
-    }
-
     // 深度优先遍历 检查 component 的依赖的访问记录
     // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
     private void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
