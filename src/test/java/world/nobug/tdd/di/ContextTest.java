@@ -195,8 +195,8 @@ public class ContextTest {
             return Stream.of(
                     Arguments.of(Named.of("Constructor Injection", DependencyCheck.MissingDependencyConstructor.class)),
                     Arguments.of(Named.of("Field Injection", DependencyCheck.MissingDependencyField.class)),
-                    Arguments.of(Named.of("Method Injection", DependencyCheck.MissingDependencyMethod.class))
-                    // TODO: Arguments.of(Named.of("Provider Inject Constructor", DependencyCheck.MissingDependencyProviderConstructor.class))
+                    Arguments.of(Named.of("Method Injection", DependencyCheck.MissingDependencyMethod.class)),
+                    Arguments.of(Named.of("Provider Inject Constructor", DependencyCheck.MissingDependencyProviderConstructor.class))
                     // TODO: Provider Inject Field
                     // TODO: Provider Inject Method
             );
