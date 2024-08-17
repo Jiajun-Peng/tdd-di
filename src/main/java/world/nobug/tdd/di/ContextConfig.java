@@ -56,12 +56,8 @@ public class ContextConfig {
     interface ComponentProvider<T> {
         T get(Context context);
 
-        default List<Type> getDependencyTypes() {
-            return List.of();
-        }
-
         default List<Context.Ref> getDependencies() {
-            return getDependencyTypes().stream().map(Context.Ref::of).toList();
+            return List.of();
         }
     }
 
