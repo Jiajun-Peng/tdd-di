@@ -42,7 +42,7 @@ public class ContextConfig {
     // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
     private void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
         for (Type dependency : providers.get(component).getDependencyTypes()) {
-            Ref ref = Ref.of(dependency);
+            Context.Ref ref = Context.Ref.of(dependency);
             // 如果依赖的类型不存在，就提前停止递归
             if (!providers.containsKey(ref.getComponent())) throw new DependencyNotFoundException(component, ref.getComponent());
             if (!ref.isContainer()) {
