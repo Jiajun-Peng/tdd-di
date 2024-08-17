@@ -41,14 +41,13 @@ public class ContextConfig {
     // 深度优先遍历 检查 component 的依赖的访问记录
     // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
     private void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
-        for (Type dependency : providers.get(component).getDependencyTypes()) {
-            Context.Ref ref = Context.Ref.of(dependency);
+        for (Context.Ref dependency : providers.get(component).getDependencies()) {
             // 如果依赖的类型不存在，就提前停止递归
-            if (!providers.containsKey(ref.getComponent())) throw new DependencyNotFoundException(component, ref.getComponent());
-            if (!ref.isContainer()) {
-                if (visiting.contains(ref.getComponent())) throw new CyclicDependenciesException(visiting);
-                visiting.push(ref.getComponent());
-                checkDependencies(ref.getComponent(), visiting);
+            if (!providers.containsKey(dependency.getComponent())) throw new DependencyNotFoundException(component, dependency.getComponent());
+            if (!dependency.isContainer()) {
+                if (visiting.contains(dependency.getComponent())) throw new CyclicDependenciesException(visiting);
+                visiting.push(dependency.getComponent());
+                checkDependencies(dependency.getComponent(), visiting);
                 visiting.pop();
             }
         }
@@ -59,6 +58,10 @@ public class ContextConfig {
 
         default List<Type> getDependencyTypes() {
             return List.of();
+        }
+
+        default List<Context.Ref> getDependencies() {
+            return getDependencyTypes().stream().map(Context.Ref::of).toList();
         }
     }
 
