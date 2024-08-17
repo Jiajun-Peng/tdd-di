@@ -56,7 +56,8 @@ public class ContextTest {
             };
             config.bind(Component.class, instance);
 
-            assertSame(instance, config.getContext().get(Component.class).get());
+            Context context = config.getContext();
+            assertSame(instance, context.get(Context.Ref.of(Component.class)).get());
         }
 
         // 将一个测试泛化为多个测试，分别测试根据：构造器注入、字段注入和方法注入的情况
@@ -68,7 +69,8 @@ public class ContextTest {
             config.bind(Dependency.class, dependency);
             config.bind(Component.class, componentType);
 
-            Optional<Component> component = config.getContext().get(Component.class);
+            Context context = config.getContext();
+            Optional<Component> component = context.get(Context.Ref.of(Component.class));
 
             assertTrue(component.isPresent());
             assertSame(dependency, component.get().dependency());
@@ -124,7 +126,8 @@ public class ContextTest {
         // component does not exist
         @Test
         public void should_retrieve_empty_for_unbind_type() {
-            Optional<Component> component = config.getContext().get(Component.class);
+            Context context = config.getContext();
+            Optional<Component> component = context.get(Context.Ref.of(Component.class));
             assertTrue(component.isEmpty());
         }
 
@@ -137,7 +140,7 @@ public class ContextTest {
             Context context = config.getContext();
 
             ParameterizedType type = new TypeLiteral<Provider<Component>>(){}.getType();
-            Provider provider = (Provider<Component>)context.get(type).get();
+            Provider provider = (Provider<Component>) context.get(Context.Ref.of(type)).get();
 
             assertSame(component, provider.get());
         }
@@ -151,7 +154,7 @@ public class ContextTest {
 
             ParameterizedType type = new TypeLiteral<List<Component>>(){}.getType();
 
-            assertFalse(context.get(type).isPresent());
+            assertFalse(context.get(Context.Ref.of(type)).isPresent());
         }
 
         @Test
@@ -386,7 +389,8 @@ public class ContextTest {
             config.bind(Component.class, CyclicComponentInjectConstructor.class);
             config.bind(Dependency.class, CyclicDependencyProviderInjectConstructor.class);
 
-            assertTrue(config.getContext().get(Component.class).isPresent());
+            Context context = config.getContext();
+            assertTrue(context.get(Context.Ref.of(Component.class)).isPresent());
         }
 
         static class CyclicComponentProviderInjectConstructor implements Component {
@@ -399,7 +403,8 @@ public class ContextTest {
             config.bind(Component.class, CyclicComponentProviderInjectConstructor.class);
             config.bind(Dependency.class, CyclicDependencyProviderInjectConstructor.class);
 
-            assertTrue(config.getContext().get(Component.class).isPresent());
+            Context context = config.getContext();
+            assertTrue(context.get(Context.Ref.of(Component.class)).isPresent());
         }
     }
 }

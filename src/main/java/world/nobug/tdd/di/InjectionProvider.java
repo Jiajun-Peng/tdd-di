@@ -128,7 +128,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     }
 
     private static Object toDependency(Context context, Type type) {
-        return context.get(type).get();
+        return context.get(Context.Ref.of(type)).get();
     }
 
 }
