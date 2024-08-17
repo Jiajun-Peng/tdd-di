@@ -57,7 +57,9 @@ public class ContextTest {
             config.bind(Component.class, instance);
 
             Context context = config.getContext();
-            assertSame(instance, context.get(Context.Ref.of(Component.class)).get());
+            Class<Component> component = Component.class;
+            Optional<Component> component1 = context.get(Context.Ref.of(component));
+            assertSame(instance, component1.get());
         }
 
         // 将一个测试泛化为多个测试，分别测试根据：构造器注入、字段注入和方法注入的情况

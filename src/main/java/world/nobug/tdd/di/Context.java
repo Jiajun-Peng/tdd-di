@@ -7,9 +7,9 @@ import java.util.Optional;
 
 public interface Context {
 
-    Optional get(Ref ref);
+    <ComponentType> Optional<ComponentType> get(Ref<ComponentType> ref);
 
-    class Ref {
+    class Ref<ComponentType> {
         private Type container;
         private Class<?> component;
 
@@ -18,8 +18,12 @@ public interface Context {
             this.component = (Class<?>) type.getActualTypeArguments()[0];
         }
 
-        Ref(Class<?> component) {
+        Ref(Class<ComponentType> component) {
             this.component = component;
+        }
+
+        static <ComponentType> Ref<ComponentType> of(Class<ComponentType> component) {
+            return new Ref<>(component);
         }
 
         static Ref of(Type type) {
