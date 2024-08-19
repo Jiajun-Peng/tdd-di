@@ -12,25 +12,27 @@ public class ComponentRef<ComponentType> {
     private Annotation qualifier;
 
     ComponentRef(Type type, Annotation qualifier) {
-        init(type);
+        init(type, qualifier);
         this.qualifier = qualifier;
     }
 
     ComponentRef(Class<ComponentType> component) {
-        init(component);
+        init(component, null);
     }
 
     protected ComponentRef() {
         Type type = ((ParameterizedType) (getClass().getGenericSuperclass())).getActualTypeArguments()[0];
-        init(type);
+        init(type, null);
     }
 
-    private void init(Type type) {
+    private void init(Type type, Annotation qualifier) {
         if (type instanceof ParameterizedType) {
             this.container = ((ParameterizedType) type).getRawType();
             this.componentType = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
+            this.component = new Component(componentType, qualifier);
         } else {
             this.componentType = (Class<?>) type;
+            this.component = new Component(componentType, qualifier);
         }
     }
 
@@ -63,6 +65,11 @@ public class ComponentRef<ComponentType> {
 
     public Annotation getQualifier() {
         return qualifier;
+    }
+
+    // 这里不用 getComponent 是为了更接近于 record 的语义
+    public Component component() {
+        return component;
     }
 
     @Override
