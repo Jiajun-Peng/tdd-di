@@ -21,7 +21,8 @@ public class ContextConfig {
     }
 
     public <Type> void bind(Class<Type> type, Type instance, Annotation... qualifiers) {
-        components.put(new Component(type, qualifiers[0]), context -> instance);
+        for (Annotation qualifier : qualifiers)
+            components.put(new Component(type, qualifier), context -> instance);
     }
 
     record Component(Class<?> type, Annotation qualifier) {
