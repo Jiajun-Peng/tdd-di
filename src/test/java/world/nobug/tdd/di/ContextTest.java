@@ -197,12 +197,18 @@ public class ContextTest {
                 assertSame(dependency, chosenOne.dependency());
                 assertSame(dependency, anotherOne.dependency());
             }
+
             // TODO throw illegal component if illegal qualifier
             @Test
             public void should_throw_exception_if_illegal_qualifier_given_to_instance() {
                 TestComponent component = new TestComponent() {
                 };
                 assertThrows(IllegalComponentException.class, () -> config.bind(TestComponent.class, component, new TestLiteral()));
+            }
+            @Test
+            public void should_throw_exception_if_illegal_qualifier_given_to_component() {
+                assertThrows(IllegalComponentException.class,
+                        () -> config.bind(ConstructorInjection.class, ConstructorInjection.class, new TestLiteral()));
             }
         }
 
