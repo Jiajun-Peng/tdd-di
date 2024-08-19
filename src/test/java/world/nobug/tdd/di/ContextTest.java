@@ -1,7 +1,7 @@
 package world.nobug.tdd.di;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -469,6 +469,29 @@ public class ContextTest {
             }
 
             // TODO check cyclic dependencies with qualifier
+            // A -> @AnotherOne A
+            // A -> @AnotherOne A -> @Named A
+            static class AnotherOneDependency implements Dependency {
+                @Inject
+                public AnotherOneDependency(@jakarta.inject.Named("ChosenOne") Dependency dependency) {
+                }
+            }
+            static class NotCyclicDependency implements Dependency {
+                @Inject
+                public NotCyclicDependency(@AnotherOne Dependency dependency) {
+                }
+            }
+            @Test
+            public void should_not_throw_exception_if_component_with_same_type_tagged_with_different_qualifier() {
+                Dependency instance = new Dependency() {
+                };
+                config.bind(Dependency.class, instance, new NamedLiteral("ChosenOne"));
+                config.bind(Dependency.class, AnotherOneDependency.class, new AnotherOneLiteral());
+                config.bind(Dependency.class, NotCyclicDependency.class);
+
+                assertDoesNotThrow(() -> config.getContext());
+            }
+
         }
     }
 }
@@ -483,6 +506,11 @@ record NamedLiteral(String value) implements jakarta.inject.Named {
     public boolean equals(Object o) {
         if (o instanceof jakarta.inject.Named named) return value.equals(named.value());
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return "value".hashCode() * 127 ^ value.hashCode();
     }
 }
 
