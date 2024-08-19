@@ -468,8 +468,7 @@ public class ContextTest {
                 }
             }
 
-            // TODO check cyclic dependencies with qualifier
-            // A -> @AnotherOne A
+            // check cyclic dependencies with qualifier
             // A -> @AnotherOne A -> @Named A
             static class AnotherOneDependency implements Dependency {
                 @Inject
