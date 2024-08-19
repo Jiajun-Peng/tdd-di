@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
@@ -97,13 +96,13 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     @Override
     public List<ComponentRef> getDependencies() {
         return Stream.concat(
-                        Stream.concat(Arrays.stream(injectConstructor.getParameters()).map(p -> getComponentRef(p)),
+                        Stream.concat(Arrays.stream(injectConstructor.getParameters()).map(this::toComponentRef),
                                 injectFields.stream().map(f -> ComponentRef.of(f.getGenericType()))),
-                        injectMethods.stream().flatMap(m -> Arrays.stream(m.getGenericParameterTypes())).map(ComponentRef::of))
+                        injectMethods.stream().flatMap(m -> Arrays.stream(m.getParameters())).map(this::toComponentRef))
                 .toList();
     }
 
-    private ComponentRef<?> getComponentRef(Parameter p) {
+    private ComponentRef<?> toComponentRef(Parameter p) {
         Annotation qualifier =
                 Arrays.stream(p.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class))
                         .findFirst().orElse(null);

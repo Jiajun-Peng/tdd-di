@@ -145,7 +145,7 @@ public class InjectionTest {
                 }
             }
             @Test
-            public void should_include_qualifier_with_dependency() {
+            public void should_include_dependency_with_qualifier() {
                 InjectionProvider<InjectConstructor> provider = new InjectionProvider<>(InjectConstructor.class);
 
                 assertArrayEquals(new ComponentRef[]{ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))},
@@ -406,6 +406,20 @@ public class InjectionTest {
         class WithQualifier {
             // TODO inject with qualifier
             // TODO include qualifier with dependency
+            static class InjectMethod {
+                @Inject
+                void install(@Named("ChosenOne") Dependency dependency) {
+
+                }
+            }
+            @Test
+            public void should_include_dependency_with_qualifier() {
+                InjectionProvider<InjectMethod> provider = new InjectionProvider<>(InjectMethod.class);
+
+                assertArrayEquals(new ComponentRef[]{ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))},
+                        provider.getDependencies().toArray(ComponentRef[]::new));
+            }
+
             // TODO throw illegal component if illegal qualifier given to injection point
         }
 
