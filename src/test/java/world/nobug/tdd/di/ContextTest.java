@@ -1,5 +1,6 @@
 package world.nobug.tdd.di;
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import jakarta.inject.Qualifier;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -166,14 +168,14 @@ public class ContextTest {
             public void should_bind_instance_with_multi_qualifiers() {
                 TestComponent component = new TestComponent() {
                 };
-                config.bind(TestComponent.class, component, new NamedLiteral("ChosenOne"), new NamedLiteral("AnotherOne"));
+                config.bind(TestComponent.class, component, new NamedLiteral("ChosenOne"), new AnotherOneLiteral());
 
                 Context context = config.getContext();
 
                 TestComponent
                         chosenOne = context.get(ComponentRef.of(TestComponent.class, new NamedLiteral("ChosenOne"))).get();
                 TestComponent
-                        anotherOne = context.get(ComponentRef.of(TestComponent.class, new NamedLiteral("AnotherOne"))).get();
+                        anotherOne = context.get(ComponentRef.of(TestComponent.class, new AnotherOneLiteral())).get();
 
                 assertSame(chosenOne, anotherOne);
             }
@@ -183,14 +185,14 @@ public class ContextTest {
                 };
                 config.bind(Dependency.class, dependency);
                 config.bind(ConstructorInjection.class, ConstructorInjection.class, new NamedLiteral("ChosenOne"),
-                        new NamedLiteral("AnotherOne"));
+                        new AnotherOneLiteral());
 
                 Context context = config.getContext();
 
                 ConstructorInjection chosenOne =
                         context.get(ComponentRef.of(ConstructorInjection.class, new NamedLiteral("ChosenOne"))).get();
                  ConstructorInjection anotherOne =
-                         context.get(ComponentRef.of(ConstructorInjection.class, new NamedLiteral("AnotherOne"))).get();
+                         context.get(ComponentRef.of(ConstructorInjection.class, new AnotherOneLiteral())).get();
 
                 assertSame(dependency, chosenOne.dependency());
                 assertSame(dependency, anotherOne.dependency());
@@ -443,5 +445,18 @@ record NamedLiteral(String value) implements jakarta.inject.Named {
     @Override
     public Class<? extends Annotation> annotationType() {
         return jakarta.inject.Named.class;
+    }
+}
+
+@java.lang.annotation.Documented
+@java.lang.annotation.Retention(RUNTIME)
+@jakarta.inject.Qualifier
+@interface AnotherOne {
+}
+
+record AnotherOneLiteral() implements AnotherOne {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return AnotherOne.class;
     }
 }
