@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Provider;
+import jakarta.inject.Qualifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -136,6 +138,21 @@ public class InjectionTest {
         @Nested
         class WithQualifier {
             // TODO inject with qualifier
+            // include qualifier with dependency
+            static class InjectConstructor {
+                @Inject
+                public InjectConstructor(@Named("ChosenOne") Dependency dependency) {
+                }
+            }
+            @Test
+            public void should_include_qualifier_with_dependency() {
+                InjectionProvider<InjectConstructor> provider = new InjectionProvider<>(InjectConstructor.class);
+
+                assertArrayEquals(new ComponentRef[]{ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))},
+                        provider.getDependencies().toArray(ComponentRef[]::new));
+            }
+
+
             // TODO throw illegal component if illegal qualifier given to injection point
         }
 
@@ -227,6 +244,7 @@ public class InjectionTest {
         @Nested
         class WithQualifier {
             // TODO inject with qualifier
+            // TODO include qualifier with dependency
             // TODO throw illegal component if illegal qualifier given to injection point
         }
 
@@ -387,6 +405,7 @@ public class InjectionTest {
         @Nested
         class WithQualifier {
             // TODO inject with qualifier
+            // TODO include qualifier with dependency
             // TODO throw illegal component if illegal qualifier given to injection point
         }
 

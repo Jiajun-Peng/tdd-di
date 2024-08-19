@@ -41,10 +41,11 @@ public class ComponentRef<ComponentType> {
     }
 
     static ComponentRef of(Type type) {
-        if (type instanceof ParameterizedType) {
-            return new ComponentRef(type, null);
-        }
-        return new ComponentRef((Class<?>) type);
+        return new ComponentRef(type, null);
+    }
+
+    static ComponentRef of(Type type, Annotation qualifier) {
+        return new ComponentRef(type, qualifier);
     }
 
     public Type getContainer() {
