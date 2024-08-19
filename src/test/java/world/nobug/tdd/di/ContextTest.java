@@ -198,7 +198,7 @@ public class ContextTest {
                 assertSame(dependency, anotherOne.dependency());
             }
 
-            // TODO throw illegal component if illegal qualifier
+            // throw illegal component if illegal qualifier
             @Test
             public void should_throw_exception_if_illegal_qualifier_given_to_instance() {
                 TestComponent component = new TestComponent() {
