@@ -455,9 +455,13 @@ public class ContextTest {
 
                 config.bind(Dependency.class, new Dependency() {
                 });
-                config.bind(InjectConstructor.class, InjectConstructor.class);
+                config.bind(InjectConstructor.class, InjectConstructor.class, new NamedLiteral("ChosenOne"));
 
-                assertThrows(DependencyNotFoundException.class, () -> config.getContext());
+                DependencyNotFoundException exception =
+                        assertThrows(DependencyNotFoundException.class, () -> config.getContext());
+
+                assertEquals(new Component(InjectConstructor.class, new NamedLiteral("ChosenOne")), exception.getComponentComponent());
+                assertEquals(new Component(Dependency.class, new AnotherOneLiteral()), exception.getDependencyComponent());
 
             }
 
