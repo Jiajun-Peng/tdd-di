@@ -1,7 +1,9 @@
 package world.nobug.tdd.di;
 
 import jakarta.inject.Provider;
+import jakarta.inject.Qualifier;
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,8 @@ public class ContextConfig {
     }
 
     public <Type> void bind(Class<Type> type, Type instance, Annotation... qualifiers) {
+        if (Arrays.stream(qualifiers).anyMatch(q -> !q.annotationType().isAnnotationPresent(Qualifier.class)))
+            throw new IllegalComponentException();
         for (Annotation qualifier : qualifiers)
             components.put(new Component(type, qualifier), context -> instance);
     }

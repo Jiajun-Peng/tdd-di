@@ -198,6 +198,12 @@ public class ContextTest {
                 assertSame(dependency, anotherOne.dependency());
             }
             // TODO throw illegal component if illegal qualifier
+            @Test
+            public void should_throw_exception_if_illegal_qualifier_given_to_instance() {
+                TestComponent component = new TestComponent() {
+                };
+                assertThrows(IllegalComponentException.class, () -> config.bind(TestComponent.class, component, new TestLiteral()));
+            }
         }
 
     }
@@ -458,5 +464,12 @@ record AnotherOneLiteral() implements AnotherOne {
     @Override
     public Class<? extends Annotation> annotationType() {
         return AnotherOne.class;
+    }
+}
+
+record TestLiteral() implements Test {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return Test.class;
     }
 }
