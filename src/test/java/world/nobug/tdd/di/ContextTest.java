@@ -172,6 +172,19 @@ public class ContextTest {
                         context.get(Context.Ref.of(Component.class, new NamedLiteral("ChosenOne"))).get();
                 assertSame(component, chosenOne);
             }
+            @Test
+            public void should_bind_component_with_qualifier() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(ConstructorInjection.class, ConstructorInjection.class, new NamedLiteral("ChosenOne"));
+
+                Context context = config.getContext();
+
+                ConstructorInjection chosenOne =
+                        context.get(Context.Ref.of(ConstructorInjection.class, new NamedLiteral("ChosenOne"))).get();
+                assertSame(dependency, chosenOne.dependency());
+            }
             // TODO binding component with qualifiers
             // TODO throw illegal component if illegal qualifier
         }
