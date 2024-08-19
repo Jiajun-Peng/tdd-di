@@ -405,7 +405,7 @@ public class InjectionTest {
         @Nested
         class WithQualifier {
             // TODO inject with qualifier
-            // TODO include qualifier with dependency
+            // include qualifier with dependency
             static class InjectMethod {
                 @Inject
                 void install(@Named("ChosenOne") Dependency dependency) {
