@@ -8,7 +8,6 @@ import java.util.Objects;
 public class ComponentRef<ComponentType> {
     private Type container;
     private Component component;
-    private Class<?> componentType;
 
     ComponentRef(Type type, Annotation qualifier) {
         init(type, qualifier);
@@ -26,11 +25,10 @@ public class ComponentRef<ComponentType> {
     private void init(Type type, Annotation qualifier) {
         if (type instanceof ParameterizedType) {
             this.container = ((ParameterizedType) type).getRawType();
-            this.componentType = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
+            Class<?> componentType = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
             this.component = new Component(componentType, qualifier);
         } else {
-            this.componentType = (Class<?>) type;
-            this.component = new Component(componentType, qualifier);
+            this.component = new Component((Class<?>) type, qualifier);
         }
     }
 
@@ -74,12 +72,12 @@ public class ComponentRef<ComponentType> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ComponentRef ref = (ComponentRef) o;
-        return Objects.equals(container, ref.container) && Objects.equals(componentType, ref.componentType);
+        ComponentRef<?> that = (ComponentRef<?>) o;
+        return Objects.equals(container, that.container) && Objects.equals(component, that.component);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(container, componentType);
+        return Objects.hash(container, component);
     }
 }
