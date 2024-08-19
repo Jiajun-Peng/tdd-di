@@ -65,7 +65,7 @@ public class ContextConfig {
         for (ComponentRef dependency : components.get(component).getDependencies()) {
             // 如果依赖的类型不存在，就提前停止递归
             if (!components.containsKey(dependency.component()))
-                throw new DependencyNotFoundException(component.type(), dependency.getComponentType());
+                throw new DependencyNotFoundException(component , dependency.component());
             if (!dependency.isContainer()) {
                 if (visiting.contains(dependency.getComponentType())) throw new CyclicDependenciesException(visiting);
                 visiting.push(dependency.getComponentType());

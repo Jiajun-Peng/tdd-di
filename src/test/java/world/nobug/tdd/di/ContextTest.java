@@ -9,17 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
-import jakarta.inject.Qualifier;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -229,8 +226,8 @@ public class ContextTest {
                 config.getContext();
             });
 
-            assertEquals(Dependency.class, exception.getDependency());
-            assertEquals(TestComponent.class, exception.getComponent());
+            assertEquals(Dependency.class, exception.getDependency().type());
+            assertEquals(TestComponent.class, exception.getComponent().type());
         }
 
         public static Stream<Arguments> should_throw_exception_if_dependency_not_found() {
@@ -460,8 +457,8 @@ public class ContextTest {
                 DependencyNotFoundException exception =
                         assertThrows(DependencyNotFoundException.class, () -> config.getContext());
 
-                assertEquals(new Component(InjectConstructor.class, new NamedLiteral("ChosenOne")), exception.getComponentComponent());
-                assertEquals(new Component(Dependency.class, new AnotherOneLiteral()), exception.getDependencyComponent());
+                assertEquals(new Component(InjectConstructor.class, new NamedLiteral("ChosenOne")), exception.getComponent());
+                assertEquals(new Component(Dependency.class, new AnotherOneLiteral()), exception.getDependency());
 
             }
 
@@ -499,6 +496,11 @@ record AnotherOneLiteral() implements AnotherOne {
     @Override
     public Class<? extends Annotation> annotationType() {
         return AnotherOne.class;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof AnotherOne;
     }
 }
 

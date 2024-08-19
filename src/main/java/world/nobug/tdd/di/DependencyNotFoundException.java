@@ -1,34 +1,19 @@
 package world.nobug.tdd.di;
 
 public class DependencyNotFoundException extends RuntimeException {
-    private Class<?> dependency;
-    private Class<?> component;
-    private Component dependencyComponent;
-    private Component componentComponent;
+    private Component dependency;
+    private Component component;
 
-    public DependencyNotFoundException(Class<?> component, Class<?> dependency) {
+    public DependencyNotFoundException(Component component, Component dependency) {
         this.dependency = dependency;
         this.component = component;
     }
 
-    public DependencyNotFoundException(Component componentComponent, Component dependencyComponent) {
-        this.dependencyComponent = dependencyComponent;
-        this.componentComponent = componentComponent;
+    public Component getDependency() {
+        return this.dependency;
     }
 
-    public Class<?> getDependency() {
-        return dependency;
-    }
-
-    public Class<?> getComponent() {
-        return component;
-    }
-
-    public Component getDependencyComponent() {
-        return this.dependencyComponent;
-    }
-
-    public Component getComponentComponent() {
-        return this.componentComponent;
+    public Component getComponent() {
+        return this.component;
     }
 }
