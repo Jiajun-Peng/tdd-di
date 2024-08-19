@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -159,6 +160,18 @@ public class ContextTest {
         @Nested
         public class WithQualifier {
             // TODO binding component with qualifier
+            @Test
+            public void should_bind_instance_with_qualifier() {
+                Component component = new Component() {
+                };
+                config.bind(Component.class, component, new NamedLiteral("ChosenOne"));
+
+                Context context = config.getContext();
+
+                Component chosenOne =
+                        context.get(Context.Ref.of(Component.class, new NamedLiteral("ChosenOne"))).get();
+                assertSame(component, chosenOne);
+            }
             // TODO binding component with qualifiers
             // TODO throw illegal component if illegal qualifier
         }
@@ -401,5 +414,12 @@ public class ContextTest {
             // TODO dependency missing if qualifier not match
             // TODO check cyclic dependencies with qualifier
         }
+    }
+}
+
+record NamedLiteral(String value) implements jakarta.inject.Named {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return jakarta.inject.Named.class;
     }
 }

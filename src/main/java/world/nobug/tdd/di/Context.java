@@ -1,5 +1,6 @@
 package world.nobug.tdd.di;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
@@ -37,6 +38,10 @@ public interface Context {
 
         static <ComponentType> Ref<ComponentType> of(Class<ComponentType> component) {
             return new Ref<>(component);
+        }
+
+        static <ComponentType> Ref<ComponentType> of(Class<ComponentType> component, Annotation qualifier) {
+            return null;
         }
 
         static Ref of(Type type) {
