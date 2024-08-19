@@ -3,6 +3,7 @@ package world.nobug.tdd.di;
 import jakarta.inject.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +20,8 @@ public class ContextConfig {
         providers.put(type, (ComponentProvider<Type>) context -> instance);
     }
 
-    public <Type> void bind(Class<Type> type, Type instance, Annotation qualifier) {
-        components.put(new Component(type, qualifier), context -> instance);
+    public <Type> void bind(Class<Type> type, Type instance, Annotation... qualifiers) {
+        components.put(new Component(type, qualifiers[0]), context -> instance);
     }
 
     record Component(Class<?> type, Annotation qualifier) {

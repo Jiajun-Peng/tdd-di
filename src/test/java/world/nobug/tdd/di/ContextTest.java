@@ -1,5 +1,6 @@
 package world.nobug.tdd.di;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -159,7 +160,7 @@ public class ContextTest {
 
         @Nested
         public class WithQualifier {
-            // TODO binding component with qualifier
+            // binding component with qualifier
             @Test
             public void should_bind_instance_with_qualifier() {
                 Component component = new Component() {
@@ -186,6 +187,20 @@ public class ContextTest {
                 assertSame(dependency, chosenOne.dependency());
             }
             // TODO binding component with qualifiers
+            @Test
+            public void should_bind_instance_with_multi_qualifiers() {
+                Component component = new Component() {
+                };
+                config.bind(Component.class, component, new NamedLiteral("ChosenOne"), new NamedLiteral("AnotherOne"));
+
+                Context context = config.getContext();
+
+                Component chosenOne = context.get(Context.Ref.of(Component.class, new NamedLiteral("ChosenOne"))).get();
+                Component anotherOne = context.get(Context.Ref.of(Component.class, new NamedLiteral("AnotherOne"))).get();
+
+                assertSame(component, anotherOne);
+                assertSame(chosenOne, anotherOne);
+            }
             // TODO throw illegal component if illegal qualifier
         }
 
