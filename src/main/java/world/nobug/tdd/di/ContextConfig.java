@@ -21,9 +21,6 @@ public class ContextConfig {
             components.put(new Component(type, qualifier), context -> instance);
     }
 
-    record Component(Class<?> type, Annotation qualifier) {
-    }
-
     public <Type, Implementation extends Type>
     void bind(Class<Type> type, Class<Implementation> implementation) {
         components.put(new Component(type, null), new InjectionProvider(implementation));
@@ -40,7 +37,7 @@ public class ContextConfig {
         return new Context() {
 
             @Override
-            public <ComponentType> Optional<ComponentType> get(Ref<ComponentType> ref) {
+            public <ComponentType> Optional<ComponentType> get(ComponentRef<ComponentType> ref) {
                 if (ref.isContainer()) {
                     if (ref.getContainer() != Provider.class) return Optional.empty();
                     return (Optional<ComponentType>) Optional.ofNullable(getComponentProvider(ref))
@@ -52,21 +49,22 @@ public class ContextConfig {
         };
     }
 
-    private <ComponentType> ComponentProvider<?> getComponentProvider(Context.Ref<ComponentType> ref) {
-        return components.get(new Component(ref.getComponent(), ref.getQualifier()));
+    private <ComponentType> ComponentProvider<?> getComponentProvider(ComponentRef<ComponentType> ref) {
+        return components.get(new Component(ref.getComponentType(), ref.getQualifier()));
     }
 
     // 深度优先遍历 检查 component 的依赖的访问记录
     // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
     private void checkDependencies(Component component, Stack<Class<?>> visiting) {
-        for (Context.Ref dependency : components.get(component).getDependencies()) {
+        for (ComponentRef dependency : components.get(component).getDependencies()) {
             // 如果依赖的类型不存在，就提前停止递归
-            if (!components.containsKey(new Component(dependency.getComponent(), dependency.getQualifier())))
-                throw new DependencyNotFoundException(component.type, dependency.getComponent());
+            Component key = new Component(dependency.getComponentType(), dependency.getQualifier());
+            if (!components.containsKey(key))
+                throw new DependencyNotFoundException(component.type(), dependency.getComponentType());
             if (!dependency.isContainer()) {
-                if (visiting.contains(dependency.getComponent())) throw new CyclicDependenciesException(visiting);
-                visiting.push(dependency.getComponent());
-                checkDependencies(new Component(dependency.getComponent(), dependency.getQualifier()), visiting);
+                if (visiting.contains(dependency.getComponentType())) throw new CyclicDependenciesException(visiting);
+                visiting.push(dependency.getComponentType());
+                checkDependencies(key, visiting);
                 visiting.pop();
             }
         }
@@ -75,7 +73,7 @@ public class ContextConfig {
     interface ComponentProvider<T> {
         T get(Context context);
 
-        default List<Context.Ref> getDependencies() {
+        default List<ComponentRef> getDependencies() {
             return List.of();
         }
     }
