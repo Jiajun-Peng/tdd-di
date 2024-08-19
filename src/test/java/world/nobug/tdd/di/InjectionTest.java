@@ -40,7 +40,7 @@ public class InjectionTest {
             // No args constructor
             @Test
             public void should_call_default_constructor_if_no_inject_constructor() {
-                Component instance = new InjectionProvider<>(ComponentWithDefaultConstructor.class).get(context);
+                TestComponent instance = new InjectionProvider<>(ComponentWithDefaultConstructor.class).get(context);
 
                 assertNotNull(instance);
                 assertInstanceOf(ComponentWithDefaultConstructor.class, instance);
@@ -98,7 +98,7 @@ public class InjectionTest {
         class IllegalInjectConstructor {
 
             // abstract class
-            abstract class AbstractComponent implements Component {
+            abstract class AbstractComponent implements TestComponent {
                 @Inject
                 public AbstractComponent() {
                 }
@@ -114,7 +114,7 @@ public class InjectionTest {
             @Test
             public void should_throw_exception_if_component_is_interface() {
                 assertThrows(IllegalComponentException.class,
-                        () -> new InjectionProvider<>(Component.class));
+                        () -> new InjectionProvider<>(TestComponent.class));
             }
 
             // sad path
@@ -392,12 +392,12 @@ public class InjectionTest {
 
     }
 
-    static class ComponentWithDefaultConstructor implements Component{
+    static class ComponentWithDefaultConstructor implements TestComponent {
         public ComponentWithDefaultConstructor(){
         }
     }
 
-    static class ComponentWithInjectConstructor implements Component{
+    static class ComponentWithInjectConstructor implements TestComponent {
         private Dependency dependency;
 
         @Inject
@@ -411,7 +411,7 @@ public class InjectionTest {
         }
     }
 
-    static class ComponentWithMultiInjectConstructors implements Component{
+    static class ComponentWithMultiInjectConstructors implements TestComponent {
 
         @Inject
         public ComponentWithMultiInjectConstructors(String name, Double value){
@@ -422,7 +422,7 @@ public class InjectionTest {
         }
     }
 
-    static class ComponentWithNoInjectConstructorNorDefaultConstructor implements Component {
+    static class ComponentWithNoInjectConstructorNorDefaultConstructor implements TestComponent {
 
         public ComponentWithNoInjectConstructorNorDefaultConstructor(String name) {
         }

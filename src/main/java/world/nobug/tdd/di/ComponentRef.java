@@ -9,11 +9,9 @@ public class ComponentRef<ComponentType> {
     private Type container;
     private Component component;
     private Class<?> componentType;
-    private Annotation qualifier;
 
     ComponentRef(Type type, Annotation qualifier) {
         init(type, qualifier);
-        this.qualifier = qualifier;
     }
 
     ComponentRef(Class<ComponentType> component) {
@@ -56,15 +54,11 @@ public class ComponentRef<ComponentType> {
     }
 
     public Class<?> getComponentType() {
-        return componentType;
+        return component.type();
     }
 
     public boolean isContainer() {
         return container != null;
-    }
-
-    public Annotation getQualifier() {
-        return qualifier;
     }
 
     // 这里不用 getComponent 是为了更接近于 record 的语义

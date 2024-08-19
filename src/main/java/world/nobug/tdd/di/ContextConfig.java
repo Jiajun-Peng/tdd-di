@@ -50,7 +50,7 @@ public class ContextConfig {
     }
 
     private <ComponentType> ComponentProvider<?> getComponentProvider(ComponentRef<ComponentType> ref) {
-        return components.get(new Component(ref.getComponentType(), ref.getQualifier()));
+        return components.get(ref.component());
     }
 
     // 深度优先遍历 检查 component 的依赖的访问记录
@@ -58,13 +58,12 @@ public class ContextConfig {
     private void checkDependencies(Component component, Stack<Class<?>> visiting) {
         for (ComponentRef dependency : components.get(component).getDependencies()) {
             // 如果依赖的类型不存在，就提前停止递归
-            Component key = new Component(dependency.getComponentType(), dependency.getQualifier());
-            if (!components.containsKey(key))
+            if (!components.containsKey(dependency.component()))
                 throw new DependencyNotFoundException(component.type(), dependency.getComponentType());
             if (!dependency.isContainer()) {
                 if (visiting.contains(dependency.getComponentType())) throw new CyclicDependenciesException(visiting);
                 visiting.push(dependency.getComponentType());
-                checkDependencies(key, visiting);
+                checkDependencies(dependency.component(), visiting);
                 visiting.pop();
             }
         }
