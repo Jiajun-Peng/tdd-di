@@ -186,7 +186,7 @@ public class ContextTest {
                         context.get(Context.Ref.of(ConstructorInjection.class, new NamedLiteral("ChosenOne"))).get();
                 assertSame(dependency, chosenOne.dependency());
             }
-            // TODO binding component with qualifiers
+            // binding component with qualifiers
             @Test
             public void should_bind_instance_with_multi_qualifiers() {
                 Component component = new Component() {
