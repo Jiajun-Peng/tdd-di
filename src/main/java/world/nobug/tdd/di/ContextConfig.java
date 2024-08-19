@@ -61,14 +61,14 @@ public class ContextConfig {
 
     // 深度优先遍历 检查 component 的依赖的访问记录
     // visiting 保存正在被访问的记录，如果发现正在被访问的记录再次被访问，说明存在循环依赖
-    private void checkDependencies(Component component, Stack<Class<?>> visiting) {
+    private void checkDependencies(Component component, Stack<Component> visiting) {
         for (ComponentRef dependency : components.get(component).getDependencies()) {
             // 如果依赖的类型不存在，就提前停止递归
             if (!components.containsKey(dependency.component()))
                 throw new DependencyNotFoundException(component , dependency.component());
             if (!dependency.isContainer()) {
-                if (visiting.contains(dependency.getComponentType())) throw new CyclicDependenciesException(visiting);
-                visiting.push(dependency.getComponentType());
+                if (visiting.contains(dependency.component())) throw new CyclicDependenciesException(visiting);
+                visiting.push(dependency.component());
                 checkDependencies(dependency.component(), visiting);
                 visiting.pop();
             }
