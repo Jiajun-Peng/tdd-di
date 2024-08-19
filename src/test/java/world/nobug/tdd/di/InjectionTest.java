@@ -133,6 +133,12 @@ public class InjectionTest {
             }
         }
 
+        @Nested
+        class WithQualifier {
+            // TODO inject with qualifier
+            // TODO throw illegal component if illegal qualifier given to injection point
+        }
+
     }
 
     @Nested
@@ -216,6 +222,12 @@ public class InjectionTest {
                 assertThrows(IllegalComponentException.class,
                         () -> new InjectionProvider<>(FinalInjectField.class));
             }
+        }
+
+        @Nested
+        class WithQualifier {
+            // TODO inject with qualifier
+            // TODO throw illegal component if illegal qualifier given to injection point
         }
 
     }
@@ -368,6 +380,12 @@ public class InjectionTest {
             public void should_throw_exception_if_method_has_type_parameter() {
                 assertThrows(IllegalComponentException.class, () -> new InjectionProvider<>(InjectMethodWithTypeParameter.class));
             }
+        }
+
+        @Nested
+        class WithQualifier {
+            // TODO inject with qualifier
+            // TODO throw illegal component if illegal qualifier given to injection point
         }
 
     }
