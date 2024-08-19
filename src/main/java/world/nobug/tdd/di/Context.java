@@ -13,9 +13,11 @@ public interface Context {
     class Ref<ComponentType> {
         private Type container;
         private Class<?> component;
+        private Annotation qualifier;
 
-        Ref(ParameterizedType type) {
+        Ref(Type type, Annotation qualifier) {
             init(type);
+            this.qualifier = qualifier;
         }
 
         Ref(Class<ComponentType> component) {
@@ -41,12 +43,12 @@ public interface Context {
         }
 
         static <ComponentType> Ref<ComponentType> of(Class<ComponentType> component, Annotation qualifier) {
-            return null;
+            return new Ref<>(component, qualifier);
         }
 
         static Ref of(Type type) {
             if (type instanceof ParameterizedType) {
-                return new Ref((ParameterizedType) type);
+                return new Ref(type, null);
             }
             return new Ref((Class<?>) type);
         }
@@ -61,6 +63,10 @@ public interface Context {
 
         public boolean isContainer() {
             return container != null;
+        }
+
+        public Annotation getQualifier() {
+            return qualifier;
         }
 
         @Override
