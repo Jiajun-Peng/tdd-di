@@ -169,7 +169,18 @@ public class InjectionTest {
             }
 
 
-            // TODO throw illegal component if illegal qualifier given to injection point
+            // throw illegal component if illegal qualifier given to injection point
+            static class MultiQualifierInjectConstructor {
+                @Inject
+                public MultiQualifierInjectConstructor(@Named("ChosenOne") @AnotherOne Dependency dependency) {
+                }
+            }
+            @Test
+            public void should_throw_exception_if_multi_qualifier_given_to_inject_constructor() {
+                // 需要在创建时检查依赖是否合法
+                assertThrows(IllegalComponentException.class,
+                        () -> new InjectionProvider<>(MultiQualifierInjectConstructor.class));
+            }
         }
 
     }
