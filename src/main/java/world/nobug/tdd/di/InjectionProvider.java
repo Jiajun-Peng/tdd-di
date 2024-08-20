@@ -30,16 +30,38 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     public InjectionProvider(Class<T> component) {
         if (Modifier.isAbstract(component.getModifiers())) throw new IllegalComponentException();
 
-        Constructor<T> constructor = getInjectConstructor(component);
-        this.injectConstructor = Injectable.of(constructor);
-        this.injectMethods = getInjectMethods(component).stream().map(Injectable::of).toList();
-        this.injectFields = getInjectFields(component).stream().map(Injectable::of).toList();
+        this.injectConstructor = getInjectConstructor(component);
+        this.injectMethods = getInjectMethods(component);
+        this.injectFields = getInjectFields(component);
 
         if (injectFields.stream().map(Injectable::element).anyMatch(f -> Modifier.isFinal(f.getModifiers())))
             throw new IllegalComponentException();
         if (injectMethods.stream().map(Injectable::element).anyMatch(m -> m.getTypeParameters().length != 0))
             throw new IllegalComponentException();
 
+    }
+
+    private static <T> Injectable<Constructor<T>> getInjectConstructor(Class<T> component) {
+        List<Constructor<?>> injectConstructors = injectable(component.getConstructors()).toList();
+        if (injectConstructors.size() > 1) {
+            throw new IllegalComponentException();
+        }
+        return Injectable.of((Constructor<T>) injectConstructors.stream().findFirst().orElseGet(() -> getDefaultConstructor(component)));
+    }
+
+    private static <T> List<Injectable<Method>> getInjectMethods(Class<T> component) {
+        List<Method> injectMethods1 = traverse(component, (methods, current) -> injectable(current.getDeclaredMethods())
+                .filter(m -> isOverrideByInjectMethod(m, methods))
+                .filter(m -> isOverrideByNoInjectMethod(component, m))
+                .toList());
+        Collections.reverse(injectMethods1);
+        return injectMethods1.stream().map(Injectable::of).toList();
+    }
+
+    private static <T> List<Injectable<Field>> getInjectFields(Class<T> component) {
+        return InjectionProvider.<Field>traverse(component,
+                        (injectField, current) -> injectable(current.getDeclaredFields()).toList())
+                .stream().map(Injectable::of).toList();
     }
 
     @Override
@@ -59,11 +81,8 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     @Override
     public List<ComponentRef<?>> getDependencies() {
-        return Stream.concat(
-                        Stream.concat(Arrays.stream(injectConstructor.required()),
-                                injectFields.stream().map(Injectable::required).flatMap(Arrays::stream)),
-                        injectMethods.stream().map(Injectable::required).flatMap(Arrays::stream))
-                .toList();
+        return Stream.concat(Stream.concat(Stream.of(injectConstructor), injectFields.stream()), injectMethods.stream())
+                .flatMap(i -> Arrays.stream(i.required)).toList();
     }
 
     static record Injectable<Element extends AccessibleObject>(Element element, ComponentRef<?>[] required){
@@ -100,20 +119,6 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         }
     }
 
-    private static <T> List<Method> getInjectMethods(Class<T> component) {
-
-        List<Method> injectMethods = traverse(component, (methods, current) -> injectable(current.getDeclaredMethods())
-                .filter(m -> isOverrideByInjectMethod(m, methods))
-                .filter(m -> isOverrideByNoInjectMethod(component, m))
-                .toList());
-        Collections.reverse(injectMethods);
-        return injectMethods;
-    }
-
-    private static <T> List<Field> getInjectFields(Class<T> component) {
-        return traverse(component, (injectField, current) -> injectable(current.getDeclaredFields()).toList());
-    }
-
     private static <T> List<T> traverse(Class<?> component, BiFunction<List<T>, Class<?>, List<T>> finder) {
         List<T> members = new ArrayList<>();
         Class<?> current = component;
@@ -122,16 +127,6 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
             current = current.getSuperclass();
         }
         return members;
-    }
-
-    private static <Type> Constructor<Type> getInjectConstructor(
-            Class<Type> implementation) {
-        List<Constructor<?>> injectConstructors = injectable(implementation.getConstructors()).toList();
-        if (injectConstructors.size() > 1) {
-            throw new IllegalComponentException();
-        }
-
-        return (Constructor<Type>) injectConstructors.stream().findFirst().orElseGet(() -> getDefaultConstructor(implementation));
     }
 
     private static <Type> Constructor<Type> getDefaultConstructor(Class<Type> implementation) {
