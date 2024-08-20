@@ -143,7 +143,7 @@ public class InjectionTest {
                 Mockito.reset(context);
                 Mockito.when(context.get(eq(ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))))).thenReturn(Optional.of(dependency));
             }
-            // TODO inject with qualifier
+            // inject with qualifier
             @Test
             public void should_inject_dependency_with_qualifier_via_constructor() {
                 InjectionProvider<InjectConstructor> provider = new InjectionProvider<>(InjectConstructor.class);
