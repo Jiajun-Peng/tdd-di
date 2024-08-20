@@ -251,15 +251,28 @@ public class ContextTest {
                 assertNotSame(component1, component2);
             }
 
+            // bind component as singleton scoped
+            static class SingletonComponent {
+            }
+            @Test
+            public void should_bind_component_as_singleton_scope() {
+                config.bind(SingletonComponent.class, SingletonComponent.class, new SingletonLiteral());
+                Context context = config.getContext();
 
-            // TODO bind component as singleton scoped
-            // TODO bind component with qualifiers as singleton scoped
+                SingletonComponent component1 = context.get(ComponentRef.of(SingletonComponent.class)).get();
+                SingletonComponent component2 = context.get(ComponentRef.of(SingletonComponent.class)).get();
+
+                assertSame(component1, component2);
+            }
+
             // TODO get scope from component class
-            // TODO get scope from component with qualifiers
+
             // TODO bind component with customize scope annotation
 
             @Nested
             public class WithQualifier {
+
+                // default scope should not be singleton
                 @Test
                 public void should_not_be_singleton_scope_by_default() {
                     config.bind(NotSingletonComponent.class, NotSingletonComponent.class, new AnotherOneLiteral());
@@ -270,6 +283,20 @@ public class ContextTest {
 
                     assertNotSame(component1, component2);
                 }
+
+                // bind component with qualifiers as singleton scoped
+                @Test
+                public void should_bind_component_as_singleton_scope() {
+                    config.bind(SingletonComponent.class, SingletonComponent.class, new SingletonLiteral(), new AnotherOneLiteral());
+                    Context context = config.getContext();
+
+                    SingletonComponent component1 = context.get(ComponentRef.of(SingletonComponent.class, new AnotherOneLiteral())).get();
+                    SingletonComponent component2 = context.get(ComponentRef.of(SingletonComponent.class, new AnotherOneLiteral())).get();
+
+                    assertSame(component1, component2);
+                }
+
+                // TODO get scope from component with qualifiers
             }
         }
 
@@ -678,5 +705,12 @@ record TestLiteral() implements Test {
     @Override
     public Class<? extends Annotation> annotationType() {
         return Test.class;
+    }
+}
+
+record SingletonLiteral() implements jakarta.inject.Singleton {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return jakarta.inject.Singleton.class;
     }
 }

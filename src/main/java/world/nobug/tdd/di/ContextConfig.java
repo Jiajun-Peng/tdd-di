@@ -2,6 +2,7 @@ package world.nobug.tdd.di;
 
 import jakarta.inject.Provider;
 import jakarta.inject.Qualifier;
+import jakarta.inject.Scope;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,11 +32,40 @@ public class ContextConfig {
     }
 
     public <Type, Implementation extends Type>
-    void bind(Class<Type> type, Class<Implementation> implementation, Annotation... qualifiers) {
-        if (Arrays.stream(qualifiers).anyMatch(q -> !q.annotationType().isAnnotationPresent(Qualifier.class)))
+    void bind(Class<Type> type, Class<Implementation> implementation, Annotation... annotations) {
+        if (Arrays.stream(annotations).map(Annotation::annotationType)
+                .anyMatch(q -> !q.isAnnotationPresent(Qualifier.class) && !q.isAnnotationPresent(Scope.class)))
             throw new IllegalComponentException();
+
+        List<Annotation> qualifiers =
+                Arrays.stream(annotations).filter(q -> q.annotationType().isAnnotationPresent(Qualifier.class)).toList();
+        Optional<Annotation> scope =
+                Arrays.stream(annotations).filter(q -> q.annotationType().isAnnotationPresent(Scope.class)).findFirst();
+
+        ComponentProvider provider = new InjectionProvider(implementation);
+        if (scope.isPresent()) provider = new SingletonProvider<>(provider);
+
+        if (qualifiers.isEmpty())
+            components.put(new Component(type, null), provider);
         for (Annotation qualifier : qualifiers)
-            components.put(new Component(type, qualifier), new InjectionProvider(implementation));
+            components.put(new Component(type, qualifier), provider);
+    }
+
+    static class SingletonProvider<T> implements ComponentProvider<T> {
+        T instance;
+        ComponentProvider<T> provider;
+
+        SingletonProvider(ComponentProvider<T> provider) {
+            this.provider = provider;
+        }
+
+        @Override
+        public T get(Context context) {
+            if (instance == null) {
+                instance = provider.get(context);
+            }
+            return instance;
+        }
     }
 
     public Context getContext() {
