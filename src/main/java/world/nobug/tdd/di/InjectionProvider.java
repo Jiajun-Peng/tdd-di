@@ -3,6 +3,7 @@ package world.nobug.tdd.di;
 import jakarta.inject.Inject;
 import jakarta.inject.Qualifier;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
@@ -15,20 +16,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
-    private Constructor<T> injectConstructor;
+    private Injectable<Constructor<T>> injectConstructor;
+
     private List<Field> injectFields;
     private List<Method> injectMethods;
     private List<ComponentRef<?>> dependencies;
 
+
     public InjectionProvider(Class<T> component) {
         if (Modifier.isAbstract(component.getModifiers())) throw new IllegalComponentException();
 
-        this.injectConstructor = getInjectConstructor(component);
+        Constructor<T> constructor = getInjectConstructor(component);
+        ComponentRef<?>[] constructorDependencies = Arrays.stream(constructor.getParameters()).map(InjectionProvider::toComponentRef)
+                .toArray(ComponentRef<?>[]::new);
+        this.injectConstructor = new Injectable<>(constructor, constructorDependencies);
+
         this.injectFields = getInjectFields(component);
         this.injectMethods = getInjectMethods(component);
 
@@ -42,7 +50,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     public T get(Context context) {
         try {
             // 根据构造函数的参数，获取依赖的实例
-            T instance = injectConstructor.newInstance(toDependencies(context, injectConstructor));
+            T instance = injectConstructor.element().newInstance(injectConstructor.toDependencies(context));
             for (Field field : injectFields)
                 field.set(instance, toDependency(context, field));
             for (Method method : injectMethods)
@@ -56,10 +64,16 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     @Override
     public List<ComponentRef<?>> getDependencies() {
         return Stream.concat(
-                        Stream.concat(Arrays.stream(injectConstructor.getParameters()).map(InjectionProvider::toComponentRef),
+                        Stream.concat(Arrays.stream(injectConstructor.required()),
                                 injectFields.stream().map(InjectionProvider::toComponentRef)),
                         injectMethods.stream().flatMap(m -> Arrays.stream(m.getParameters())).map(InjectionProvider::toComponentRef))
                 .toList();
+    }
+
+    static record Injectable<Element extends AccessibleObject>(Element element, ComponentRef<?>[] required){
+        Object[] toDependencies(Context context) {
+            return Arrays.stream(required).map(context::get).map(Optional::get).toArray();
+        }
     }
 
     private static <T> List<Method> getInjectMethods(Class<T> component) {
