@@ -197,6 +197,29 @@ public class ContextTest {
                 assertSame(dependency, anotherOne.dependency());
             }
 
+            @Test
+            public void should_retrieve_bind_type_as_provider() {
+                TestComponent component = new TestComponent() {
+                };
+                config.bind(TestComponent.class, component, new NamedLiteral("ChosenOne"), new AnotherOneLiteral());
+                Context context = config.getContext();
+                Optional<Provider<TestComponent>> provider =
+                        context.get(new ComponentRef<Provider<TestComponent>>(new AnotherOneLiteral()) {});
+
+                assertTrue(provider.isPresent());
+            }
+            @Test
+            public void should_retrieve_empty_if_no_matched_qualifier() {
+                TestComponent component = new TestComponent() {
+                };
+                config.bind(TestComponent.class, component);
+                Context context = config.getContext();
+                Optional<Provider<TestComponent>> provider =
+                        context.get(new ComponentRef<Provider<TestComponent>>(new NamedLiteral("ChosenOne")) {});
+
+                assertTrue(provider.isEmpty());
+            }
+
             // throw illegal component if illegal qualifier
             @Test
             public void should_throw_exception_if_illegal_qualifier_given_to_instance() {
@@ -447,50 +470,131 @@ public class ContextTest {
         @Nested
         public class WithQualifier {
             // dependency missing if qualifier not match
-            @Test
-            public void should_throw_exception_if_dependency_not_found_with_qualifier() {
+            @ParameterizedTest
+            @MethodSource
+            public void should_throw_exception_if_dependency_with_qualifier_not_found(Class<? extends TestComponent> componentType) {
 
                 config.bind(Dependency.class, new Dependency() {
                 });
-                config.bind(InjectConstructor.class, InjectConstructor.class, new NamedLiteral("ChosenOne"));
+                config.bind(TestComponent.class, componentType, new NamedLiteral("ChosenOne"));
 
                 DependencyNotFoundException exception =
                         assertThrows(DependencyNotFoundException.class, () -> config.getContext());
 
-                assertEquals(new Component(InjectConstructor.class, new NamedLiteral("ChosenOne")), exception.getComponent());
+                assertEquals(new Component(TestComponent.class, new NamedLiteral("ChosenOne")), exception.getComponent());
                 assertEquals(new Component(Dependency.class, new AnotherOneLiteral()), exception.getDependency());
 
             }
+            public static Stream<Arguments> should_throw_exception_if_dependency_with_qualifier_not_found() {
+                return Stream.of(
+                        Arguments.of(Named.of("Constructor Injection with Qualifier", DependencyCheck.WithQualifier.InjectConstructor.class)),
+                        Arguments.of(Named.of("Field Injection with Qualifier", DependencyCheck.WithQualifier.InjectField.class)),
+                        Arguments.of(Named.of("Method Injection with Qualifier", DependencyCheck.WithQualifier.InjectMethod.class)),
+                        Arguments.of(Named.of("Provider Constructor Injection with Qualifier", DependencyCheck.WithQualifier.InjectConstructorProvider.class)),
+                        Arguments.of(Named.of("Provider Field Injection with Qualifier", DependencyCheck.WithQualifier.InjectFieldProvider.class)),
+                        Arguments.of(Named.of("Provider Method Injection with Qualifier", DependencyCheck.WithQualifier.InjectMethodProvider.class))
+                );
+            }
 
-            static class InjectConstructor {
+            static class InjectConstructor implements TestComponent {
                 @Inject
                 public InjectConstructor(@AnotherOne Dependency dependency) {
                 }
             }
 
+            static class InjectField implements TestComponent {
+                @Inject
+                @AnotherOne Dependency dependency;
+            }
+            static class InjectMethod implements TestComponent {
+                Dependency dependency;
+
+                @Inject
+                public void install(@AnotherOne Dependency dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            static class InjectConstructorProvider implements TestComponent {
+                @Inject
+                public InjectConstructorProvider(@AnotherOne Provider<Dependency> dependency) {
+                }
+            }
+
+            static class InjectFieldProvider implements TestComponent {
+                @Inject
+                @AnotherOne
+                Provider<Dependency> dependency;
+            }
+
+            static class InjectMethodProvider implements TestComponent {
+                Dependency dependency;
+
+                @Inject
+                public void install(@AnotherOne Provider<Dependency> dependency) {
+                    this.dependency = dependency.get();
+                }
+            }
+
             // check cyclic dependencies with qualifier
             // A -> @AnotherOne A -> @Named A
-            static class AnotherOneDependency implements Dependency {
-                @Inject
-                public AnotherOneDependency(@jakarta.inject.Named("ChosenOne") Dependency dependency) {
-                }
-            }
-            static class NotCyclicDependency implements Dependency {
-                @Inject
-                public NotCyclicDependency(@AnotherOne Dependency dependency) {
-                }
-            }
-            @Test
-            public void should_not_throw_exception_if_component_with_same_type_tagged_with_different_qualifier() {
+            @ParameterizedTest(name = "{1} -> @AnotherOne({0}) -> @Named(\"ChosenOne\") not cyclic dependencies")
+            @MethodSource
+            public void should_not_throw_exception_if_component_with_same_type_tagged_with_different_qualifier(Class<? extends Dependency> anotherDependencyType,
+                                                                                                           Class<? extends Dependency> notCyclicDependencyType) {
                 Dependency instance = new Dependency() {
                 };
                 config.bind(Dependency.class, instance, new NamedLiteral("ChosenOne"));
-                config.bind(Dependency.class, AnotherOneDependency.class, new AnotherOneLiteral());
-                config.bind(Dependency.class, NotCyclicDependency.class);
+                config.bind(Dependency.class, anotherDependencyType, new AnotherOneLiteral());
+                config.bind(Dependency.class, notCyclicDependencyType);
 
                 assertDoesNotThrow(() -> config.getContext());
             }
 
+            public static Stream<Arguments> should_not_throw_exception_if_component_with_same_type_tagged_with_different_qualifier() {
+                List<Arguments> arguments = new ArrayList<>();
+                for (Named anotherDependency : List.of(Named.of("Constructor Injection", AnotherOneDependencyConstructor.class),
+                        Named.of("Field Injection", DependencyCheck.WithQualifier.AnotherOneDependencyField.class),
+                        Named.of("Method Injection", DependencyCheck.WithQualifier.AnotherOneDependencyMethod.class))) {
+                    for (Named notCyclicDependency : List.of(Named.of("Constructor Injection", NotCyclicDependencyConstructor.class),
+                            Named.of("Field Injection", DependencyCheck.WithQualifier.NotCyclicDependencyField.class),
+                            Named.of("Method Injection", DependencyCheck.WithQualifier.NotCyclicDependencyMethod.class))) {
+                        arguments.add(Arguments.of(anotherDependency, notCyclicDependency));
+                    }
+                }
+                return arguments.stream();
+            }
+
+            static class AnotherOneDependencyConstructor implements Dependency {
+                @Inject
+                public AnotherOneDependencyConstructor(@jakarta.inject.Named("ChosenOne") Dependency dependency) {
+                }
+            }
+            static class AnotherOneDependencyField implements Dependency {
+                @Inject
+                @jakarta.inject.Named("ChosenOne") Dependency dependency;
+
+            }
+            static class AnotherOneDependencyMethod implements Dependency {
+                @Inject
+                public void install(@jakarta.inject.Named("ChosenOne") Dependency dependency) {
+                }
+            }
+
+            static class NotCyclicDependencyConstructor implements Dependency {
+                @Inject
+                public NotCyclicDependencyConstructor(@AnotherOne Dependency dependency) {
+                }
+            }
+            static class NotCyclicDependencyField implements Dependency {
+                @Inject
+                @AnotherOne Dependency dependency;
+            }
+            static class NotCyclicDependencyMethod implements Dependency {
+                @Inject
+                public void install(@AnotherOne Dependency dependency) {
+                }
+            }
         }
     }
 }
