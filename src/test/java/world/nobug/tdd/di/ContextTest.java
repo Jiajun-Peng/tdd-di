@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -265,7 +266,22 @@ public class ContextTest {
                 assertSame(component1, component2);
             }
 
-            // TODO get scope from component class
+            // get scope from component class
+            @Singleton
+            static class SingletonComponentAnnotated {
+
+            }
+            @Test
+            public void should_retrieve_scope_annotation_from_component() {
+                // 未指定 scope 时，默认将标记了 Singleton 的类作为单例
+                config.bind(SingletonComponentAnnotated.class, SingletonComponentAnnotated.class);
+                Context context = config.getContext();
+
+                SingletonComponentAnnotated component1 = context.get(ComponentRef.of(SingletonComponentAnnotated.class)).get();
+                SingletonComponentAnnotated component2 = context.get(ComponentRef.of(SingletonComponentAnnotated.class)).get();
+
+                assertSame(component1, component2);
+            }
 
             // TODO bind component with customize scope annotation
 

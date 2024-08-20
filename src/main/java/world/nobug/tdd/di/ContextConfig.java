@@ -28,7 +28,7 @@ public class ContextConfig {
 
     public <Type, Implementation extends Type>
     void bind(Class<Type> type, Class<Implementation> implementation) {
-        components.put(new Component(type, null), new InjectionProvider(implementation));
+        bind(type, implementation, type.getAnnotations());
     }
 
     public <Type, Implementation extends Type>
