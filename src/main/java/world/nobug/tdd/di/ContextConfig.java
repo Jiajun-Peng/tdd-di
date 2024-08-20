@@ -39,8 +39,11 @@ public class ContextConfig {
 
         List<Annotation> qualifiers =
                 Arrays.stream(annotations).filter(q -> q.annotationType().isAnnotationPresent(Qualifier.class)).toList();
+        Optional<Annotation> scopeFromType =
+                Arrays.stream(type.getAnnotations()).filter(q -> q.annotationType().isAnnotationPresent(Scope.class)).findFirst();
         Optional<Annotation> scope =
-                Arrays.stream(annotations).filter(q -> q.annotationType().isAnnotationPresent(Scope.class)).findFirst();
+                Arrays.stream(annotations).filter(q -> q.annotationType().isAnnotationPresent(Scope.class))
+                        .findFirst().or(() -> scopeFromType);
 
         ComponentProvider provider = new InjectionProvider(implementation);
         if (scope.isPresent()) provider = new SingletonProvider<>(provider);

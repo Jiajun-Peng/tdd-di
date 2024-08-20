@@ -312,7 +312,19 @@ public class ContextTest {
                     assertSame(component1, component2);
                 }
 
-                // TODO get scope from component with qualifiers
+                // get scope from component with qualifiers
+                @Test
+                public void should_retrieve_scope_annotation_from_component() {
+                    // 未指定 scope 时，默认将标记了 Singleton 的类作为单例
+                    config.bind(SingletonComponentAnnotated.class, SingletonComponentAnnotated.class, new AnotherOneLiteral());
+                    Context context = config.getContext();
+
+                    SingletonComponentAnnotated component1 = context.get(ComponentRef.of(SingletonComponentAnnotated.class, new AnotherOneLiteral())).get();
+                    SingletonComponentAnnotated component2 = context.get(ComponentRef.of(SingletonComponentAnnotated.class, new AnotherOneLiteral())).get();
+
+                    assertSame(component1, component2);
+                }
+
             }
         }
 
