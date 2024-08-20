@@ -489,7 +489,19 @@ public class InjectionTest {
                         provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
-            // TODO throw illegal component if illegal qualifier given to injection point
+            // throw illegal component if illegal qualifier given to injection point
+            static class MultiQualifierInjectMethod {
+                Dependency dependency;
+                @Inject
+                public void install(@Named("ChosenOne") @AnotherOne Dependency dependency) {
+                }
+            }
+            @Test
+            public void should_throw_exception_if_multi_qualifier_given_to_inject_method() {
+                // 需要在创建时检查依赖是否合法
+                assertThrows(IllegalComponentException.class,
+                        () -> new InjectionProvider<>(MultiQualifierInjectMethod.class));
+            }
         }
 
     }
