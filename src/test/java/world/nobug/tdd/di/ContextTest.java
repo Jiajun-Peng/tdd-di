@@ -4,6 +4,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -231,6 +232,44 @@ public class ContextTest {
             public void should_throw_exception_if_illegal_qualifier_given_to_component() {
                 assertThrows(IllegalComponentException.class,
                         () -> config.bind(ConstructorInjection.class, ConstructorInjection.class, new TestLiteral()));
+            }
+        }
+
+        @Nested
+        public class WithScope {
+            // default scope should not be singleton
+            static class NotSingletonComponent {
+            }
+            @Test
+            public void should_not_be_singleton_scope_by_default() {
+                config.bind(NotSingletonComponent.class, NotSingletonComponent.class);
+                Context context = config.getContext();
+
+                NotSingletonComponent component1 = context.get(ComponentRef.of(NotSingletonComponent.class)).get();
+                NotSingletonComponent component2 = context.get(ComponentRef.of(NotSingletonComponent.class)).get();
+
+                assertNotSame(component1, component2);
+            }
+
+
+            // TODO bind component as singleton scoped
+            // TODO bind component with qualifiers as singleton scoped
+            // TODO get scope from component class
+            // TODO get scope from component with qualifiers
+            // TODO bind component with customize scope annotation
+
+            @Nested
+            public class WithQualifier {
+                @Test
+                public void should_not_be_singleton_scope_by_default() {
+                    config.bind(NotSingletonComponent.class, NotSingletonComponent.class, new AnotherOneLiteral());
+                    Context context = config.getContext();
+
+                    NotSingletonComponent component1 = context.get(ComponentRef.of(NotSingletonComponent.class, new AnotherOneLiteral())).get();
+                    NotSingletonComponent component2 = context.get(ComponentRef.of(NotSingletonComponent.class, new AnotherOneLiteral())).get();
+
+                    assertNotSame(component1, component2);
+                }
             }
         }
 
