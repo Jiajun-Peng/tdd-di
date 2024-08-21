@@ -303,6 +303,18 @@ public class ContextTest {
                 assertEquals(PooledProvider.MAX, new HashSet<>(instances).size());
             }
 
+            // multi scope provided
+            @Test
+            public void should_throw_exception_if_multi_scope_provided() {
+                config.scope(Pooled.class, PooledProvider::new);
+                config.scope(Singleton.class, SingletonProvider::new);
+                assertThrows(IllegalComponentException.class,
+                        () -> config.bind(PooledComponent.class, PooledComponent.class, new PooledLiteral(), new SingletonLiteral()));
+            }
+
+            // TODO multi scope annotated
+            // TODO undefined scope
+
             @Nested
             public class WithQualifier {
 
