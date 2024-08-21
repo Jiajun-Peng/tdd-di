@@ -354,7 +354,9 @@ public class ContextTest {
                     Arguments.of(Named.of("Method Injection", DependencyCheck.MissingDependencyMethod.class)),
                     Arguments.of(Named.of("Provider Inject Constructor", DependencyCheck.MissingDependencyProviderConstructor.class)),
                     Arguments.of(Named.of("Provider Inject Field", DependencyCheck.MissingDependencyProviderField.class)),
-                    Arguments.of(Named.of("Provider Inject Method", DependencyCheck.MissingDependencyProviderMethod.class))
+                    Arguments.of(Named.of("Provider Inject Method", DependencyCheck.MissingDependencyProviderMethod.class)),
+                    Arguments.of(Named.of("Scope", DependencyCheck.MissingDependencyScope.class)),
+                    Arguments.of(Named.of("Provider Scope", DependencyCheck.MissingDependencyProviderScope.class))
             );
         }
 
@@ -390,6 +392,19 @@ public class ContextTest {
             @Inject
             public void install(Provider<Dependency> dependency){
             }
+        }
+
+        // missing dependency with scope
+        @Singleton
+        static class MissingDependencyScope implements TestComponent {
+            @Inject
+            Dependency dependency;
+        }
+
+        @Singleton
+        static class MissingDependencyProviderScope implements TestComponent {
+            @Inject
+            Provider<Dependency> dependency;
         }
 
 

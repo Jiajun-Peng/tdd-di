@@ -69,6 +69,11 @@ public class ContextConfig {
             }
             return instance;
         }
+
+        @Override
+        public List<ComponentRef<?>> getDependencies() {
+            return provider.getDependencies();
+        }
     }
 
     public Context getContext() {
