@@ -21,7 +21,7 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
+class InjectionProvider<T> implements ComponentProvider<T> {
     private Injectable<Constructor<T>> injectConstructor;
     private List<Injectable<Method>> injectMethods;
     private List<Injectable<Field>> injectFields;

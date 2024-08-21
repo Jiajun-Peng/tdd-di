@@ -65,28 +65,6 @@ public class ContextConfig {
         scopes.put(scopeType, provider);
     }
 
-    static class SingletonProvider<T> implements ComponentProvider<T> {
-        T instance;
-        ComponentProvider<T> provider;
-
-        SingletonProvider(ComponentProvider<T> provider) {
-            this.provider = provider;
-        }
-
-        @Override
-        public T get(Context context) {
-            if (instance == null) {
-                instance = provider.get(context);
-            }
-            return instance;
-        }
-
-        @Override
-        public List<ComponentRef<?>> getDependencies() {
-            return provider.getDependencies();
-        }
-    }
-
     public Context getContext() {
         components.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
         return new Context() {
@@ -121,14 +99,6 @@ public class ContextConfig {
                 checkDependencies(dependency.component(), visiting);
                 visiting.pop();
             }
-        }
-    }
-
-    interface ComponentProvider<T> {
-        T get(Context context);
-
-        default List<ComponentRef<?>> getDependencies() {
-            return List.of();
         }
     }
 
