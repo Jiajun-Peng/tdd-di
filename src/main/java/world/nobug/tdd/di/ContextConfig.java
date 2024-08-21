@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ContextConfig {
 
@@ -39,9 +41,11 @@ public class ContextConfig {
 
     public <Type, Implementation extends Type>
     void bind(Class<Type> type, Class<Implementation> implementation, Annotation... annotations) {
-        if (Arrays.stream(annotations).map(Annotation::annotationType)
-                .anyMatch(q -> !q.isAnnotationPresent(Qualifier.class) && !q.isAnnotationPresent(Scope.class)))
-            throw new IllegalComponentException();
+
+        Map<Class<?>, List<Annotation>> annotationGroups =
+                Arrays.stream(annotations).collect(Collectors.groupingBy(this::typeOf, Collectors.toList()));
+
+        if (annotationGroups.containsKey(Illegal.class)) throw new IllegalComponentException();
 
         List<Annotation> qualifiers =
                 Arrays.stream(annotations).filter(q -> q.annotationType().isAnnotationPresent(Qualifier.class)).toList();
@@ -58,6 +62,18 @@ public class ContextConfig {
             components.put(new Component(type, null), provider);
         for (Annotation qualifier : qualifiers)
             components.put(new Component(type, qualifier), provider);
+    }
+
+    private Class<? extends Annotation> typeOf(Annotation annotation) {
+        Class<? extends Annotation> type = annotation.annotationType();
+        return Stream.of(Qualifier.class, Scope.class)
+                .filter(type::isAnnotationPresent)
+                .findFirst()
+                .orElse(Illegal.class);
+    }
+
+    private @interface Illegal {
+
     }
 
     public <ScopeType extends Annotation> void scope(Class<ScopeType> scopeType, ScopeProvider provider) {
