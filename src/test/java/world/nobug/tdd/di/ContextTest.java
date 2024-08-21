@@ -312,8 +312,25 @@ public class ContextTest {
                         () -> config.bind(PooledComponent.class, PooledComponent.class, new PooledLiteral(), new SingletonLiteral()));
             }
 
-            // TODO multi scope annotated
-            // TODO undefined scope
+            // multi scope annotated
+            @Singleton @Pooled
+            static class MultiScopeAnnotatedComponent {
+
+            }
+            @Test
+            public void should_throw_exception_if_multi_scope_annotated() {
+                config.scope(Pooled.class, PooledProvider::new);
+                assertThrows(IllegalComponentException.class,
+                        () -> config.bind(MultiScopeAnnotatedComponent.class, MultiScopeAnnotatedComponent.class));
+            }
+
+            // undefined scope
+            @Test
+            public void should_throw_exception_if_undefined_scope() {
+                assertThrows(IllegalComponentException.class,
+                        () -> config.bind(PooledComponent.class, PooledComponent.class, new PooledLiteral()));
+            }
+
 
             @Nested
             public class WithQualifier {

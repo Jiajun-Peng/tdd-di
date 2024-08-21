@@ -63,8 +63,13 @@ public class ContextConfig {
         if (scopes.size() > 1) throw new IllegalComponentException();
         Optional<Annotation> scope = scopes.stream().findFirst().or(() -> scopeFrom(implementation));
         ComponentProvider provider = new InjectionProvider(implementation);
-        if (scope.isPresent()) provider = this.scopes.get(scope.get().annotationType()).create(provider);
+        if (scope.isPresent()) provider = getProvider(scope, provider);
         return provider;
+    }
+
+    private ComponentProvider<?> getProvider(Optional<Annotation> scope, ComponentProvider provider) {
+        if (!scopes.containsKey(scope.get().annotationType())) throw new IllegalComponentException();
+        return this.scopes.get(scope.get().annotationType()).create(provider);
     }
 
     private static <Type> Optional<Annotation> scopeFrom(Class<Type> implementation) {
