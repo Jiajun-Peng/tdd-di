@@ -47,20 +47,23 @@ public class ContextConfig {
 
         if (annotationGroups.containsKey(Illegal.class)) throw new IllegalComponentException();
 
-        List<Annotation> qualifiers = annotationGroups.getOrDefault(Qualifier.class, List.of());
+        bind(type, annotationGroups.getOrDefault(Qualifier.class, List.of()),
+                createScopeProvider(implementation, annotationGroups.getOrDefault(Scope.class, List.of())));
+    }
 
-        Optional<Annotation> scope = annotationGroups.getOrDefault(Scope.class, List.of())
-                .stream()
-                .findFirst()
-                .or(() -> scopeFrom(implementation));
-
-        ComponentProvider provider = new InjectionProvider(implementation);
-        if (scope.isPresent()) provider = scopes.get(scope.get().annotationType()).create(provider);
-
+    private <Type> void bind(Class<Type> type, List<Annotation> qualifiers, ComponentProvider provider) {
         if (qualifiers.isEmpty())
             components.put(new Component(type, null), provider);
         for (Annotation qualifier : qualifiers)
             components.put(new Component(type, qualifier), provider);
+    }
+
+    private <Type, Implementation extends Type> ComponentProvider createScopeProvider(
+            Class<Implementation> implementation, List<Annotation> scopes) {
+        Optional<Annotation> scope = scopes.stream().findFirst().or(() -> scopeFrom(implementation));
+        ComponentProvider provider = new InjectionProvider(implementation);
+        if (scope.isPresent()) provider = this.scopes.get(scope.get().annotationType()).create(provider);
+        return provider;
     }
 
     private static <Type> Optional<Annotation> scopeFrom(Class<Type> implementation) {
