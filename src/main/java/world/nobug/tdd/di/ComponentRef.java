@@ -68,12 +68,8 @@ public class ComponentRef<ComponentType> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ComponentRef<?> that = (ComponentRef<?>) o;
         return Objects.equals(container, that.container) && Objects.equals(component, that.component);
     }
