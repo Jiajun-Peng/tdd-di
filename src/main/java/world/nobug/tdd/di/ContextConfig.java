@@ -47,13 +47,10 @@ public class ContextConfig {
 
         if (annotationGroups.containsKey(Illegal.class)) throw new IllegalComponentException();
 
-        List<Annotation> qualifiers =
-                Arrays.stream(annotations).filter(q -> q.annotationType().isAnnotationPresent(Qualifier.class)).toList();
+        List<Annotation> qualifiers = annotationGroups.getOrDefault(Qualifier.class, List.of());
         Optional<Annotation> scopeFromType =
                 Arrays.stream(implementation.getAnnotations()).filter(q -> q.annotationType().isAnnotationPresent(Scope.class)).findFirst();
-        Optional<Annotation> scope =
-                Arrays.stream(annotations).filter(q -> q.annotationType().isAnnotationPresent(Scope.class))
-                        .findFirst().or(() -> scopeFromType);
+        Optional<Annotation> scope = annotationGroups.getOrDefault(Scope.class, List.of()).stream().findFirst().or(() -> scopeFromType);
 
         ComponentProvider provider = new InjectionProvider(implementation);
         if (scope.isPresent()) provider = scopes.get(scope.get().annotationType()).create(provider);
