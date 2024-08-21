@@ -10,13 +10,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import jakarta.inject.Scope;
 import jakarta.inject.Singleton;
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Named;
@@ -283,7 +288,20 @@ public class ContextTest {
                 assertSame(component1, component2);
             }
 
-            // TODO bind component with customize scope annotation
+            // bind component with customize scope annotation
+            static class PooledComponent {
+
+            }
+            @Test
+            public void should_bind_component_with_customize_scope_annotation() {
+                config.scope(Pooled.class, PooledProvider::new);
+                config.bind(PooledComponent.class, PooledComponent.class, new PooledLiteral());
+                Context context = config.getContext();
+
+                List<PooledComponent> instances = IntStream.range(0, 5)
+                        .mapToObj(i -> context.get(ComponentRef.of(PooledComponent.class)).get()).toList();
+                assertEquals(PooledProvider.MAX, new HashSet<>(instances).size());
+            }
 
             @Nested
             public class WithQualifier {
@@ -755,5 +773,40 @@ record SingletonLiteral() implements jakarta.inject.Singleton {
     @Override
     public Class<? extends Annotation> annotationType() {
         return jakarta.inject.Singleton.class;
+    }
+}
+
+@Scope
+@Documented
+@Retention(RUNTIME)
+@interface Pooled {}
+
+record PooledLiteral() implements Pooled {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return Pooled.class;
+    }
+}
+
+class PooledProvider<T> implements ContextConfig.ComponentProvider<T> {
+    static int MAX = 2;
+
+    private int current;
+    private List<T> instancePool = new ArrayList<>();
+    ContextConfig.ComponentProvider<T> provider;
+
+    PooledProvider(ContextConfig.ComponentProvider<T> provider) {
+        this.provider = provider;
+    }
+
+    @Override
+    public T get(Context context) {
+        if (instancePool.size() < MAX) instancePool.add(provider.get(context));
+        return instancePool.get(current++ % MAX);
+    }
+
+    @Override
+    public List<ComponentRef<?>> getDependencies() {
+        return provider.getDependencies();
     }
 }

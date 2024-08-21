@@ -3,6 +3,7 @@ package world.nobug.tdd.di;
 import jakarta.inject.Provider;
 import jakarta.inject.Qualifier;
 import jakarta.inject.Scope;
+import jakarta.inject.Singleton;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,10 +11,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
+import java.util.function.Function;
 
 public class ContextConfig {
 
     private Map<Component, ComponentProvider<?>> components = new HashMap<>();
+    private Map<Class<?>, Function<ComponentProvider<?>, ComponentProvider<?>>> scopes = new HashMap<>();
+
+    public ContextConfig() {
+        scopes.put(Singleton.class, SingletonProvider::new);
+    }
 
     public <Type> void bind(Class<Type> type, Type instance) {
         components.put(new Component(type, null), context -> instance);
@@ -46,12 +53,16 @@ public class ContextConfig {
                         .findFirst().or(() -> scopeFromType);
 
         ComponentProvider provider = new InjectionProvider(implementation);
-        if (scope.isPresent()) provider = new SingletonProvider<>(provider);
+        if (scope.isPresent()) provider = scopes.get(scope.get().annotationType()).apply(provider);
 
         if (qualifiers.isEmpty())
             components.put(new Component(type, null), provider);
         for (Annotation qualifier : qualifiers)
             components.put(new Component(type, qualifier), provider);
+    }
+
+    public <ScopeType extends Annotation> void scope(Class<ScopeType> scopeType, Function<ComponentProvider<?>, ComponentProvider<?>> provider) {
+        scopes.put(scopeType, provider);
     }
 
     static class SingletonProvider<T> implements ComponentProvider<T> {
